@@ -1,6 +1,8 @@
 package os_linux
 
 import (
+
+	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -8,6 +10,10 @@ import (
 	"strings"
 	tm "github.com/xy63237777/go-lib-utils/time"
 	"syscall"
+)
+
+const (
+	mb = 1024 * 1024
 )
 
 // SystemInfo 系统信息
@@ -35,6 +41,24 @@ type SystemInfo struct {
 	NextGC       uint64  `json:"next_gc"`        //下次GC内存回收量,字节数
 	PauseTotalNs uint64  `json:"pause_total_ns"` //GC暂停时间总量,纳秒
 	PauseNs      uint64  `json:"pause_ns"`       //上次GC暂停时间,纳秒
+}
+
+func (si *SystemInfo) String() string {
+	buff := strings.Builder{}
+	buff.WriteString("* Server Info : \n")
+	buff.WriteString(fmt.Sprintf("\tServerName : %s | SystemOs : %s | 运行时间 : %v | goroutine数量 : %v\n",si.ServerName,si.SystemOs, si.Runtime,si.GoroutineNum))
+	buff.WriteString("* CPU Info : \n")
+	buff.WriteString(fmt.Sprintf("\tcpu核数 : %v | cpu用户态比率 : %v%% | cpu空闲比率 : %v%%\n", si.CPUNum, si.CPUUser * 100, si.CPUFree * 100))
+	buff.WriteString("* Disk Info : \n")
+	buff.WriteString(fmt.Sprintf("\t已用磁盘空间 : %v(MB) | 可用磁盘空间 : %v(MB) | 总磁盘空间 : %v(MB)\n", si.DiskUsed/mb,si.DiskFree/mb,si.DiskTotal/mb))
+	buff.WriteString("* Memory Info : \n")
+	buff.WriteString(fmt.Sprintf("\t已用内存 : %v(MB) | 系统内存占用量 : %v(MB) | 剩余内存 : %v(MB)\n",si.MemUsed/mb,si.MemSys/mb,si.MemFree/mb))
+	buff.WriteString(fmt.Sprintf("\tgolang内存使用量(MB) : %v | 总分配的内存 %v (MB) | 总内存 : %v(MB)\n",si.AllocGolang/mb,si.AllocTotal/mb,si.MemTotal/mb))
+	buff.WriteString(fmt.Sprintf("\t指针查找次数 : %v | 内存分配次数 : %v | 内存释放次数 : %v\n",si.Lookups,si.Mallocs, si.Frees))
+	buff.WriteString("* gc Info : \n")
+	buff.WriteString(fmt.Sprintf("\t上次GC时间 : %v(纳秒) | 下次GC内存回收量 : %v(字节)\n",si.LastGCTime, si.NextGC/mb))
+	buff.WriteString(fmt.Sprintf("\tGC暂停时间总量 : %v() | 上次GC暂停时间 : %v()",si.PauseTotalNs,si.PauseNs))
+	return buff.String()
 }
 
 // GoMemory 获取当前go程序的内存使用,返回字节数.
