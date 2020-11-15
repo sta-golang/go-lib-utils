@@ -1,15 +1,9 @@
 package string
 
 import (
-	"bytes"
 	"hash/crc32"
-	"io/ioutil"
 	"strings"
 	"unsafe"
-
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
-	"golang.org/x/text/width"
 )
 
 // BytesToString 0copy 字节数组转化成String
@@ -34,29 +28,6 @@ func CRC32(str string) uint32 {
 	return crc32.ChecksumIEEE(StringToBytes(str))
 }
 
-// SBC2DBC 全角转半角
-func SBC2DBC(str string) string {
-	return width.Narrow.String(str)
-}
-
-// DBC2SBC 半角转全角.
-func DBC2SBC(str string) string {
-	return width.Widen.String(str)
-}
-
-// Utf8ToGbk UTF-8转GBK编码.
-func Utf8ToGbk(s []byte) ([]byte, error) {
-	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewEncoder())
-	d, e := ioutil.ReadAll(reader)
-	return d, e
-}
-
-// GbkToUtf8 GBK转UTF-8编码.
-func GbkToUtf8(s []byte) ([]byte, error) {
-	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewDecoder())
-	d, e := ioutil.ReadAll(reader)
-	return d, e
-}
 
 // IsEmpty 字符串是否为空(包括空格).
 func IsEmpty(str string) bool {
