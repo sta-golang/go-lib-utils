@@ -48,7 +48,7 @@ func (si *SystemInfo) String() string {
 	buff.WriteString("* Server Info : \n")
 	buff.WriteString(fmt.Sprintf("\tServerName : %s | SystemOs : %s | 运行时间 : %v | goroutine数量 : %v\n",si.ServerName,si.SystemOs, si.Runtime,si.GoroutineNum))
 	buff.WriteString("* CPU Info : \n")
-	buff.WriteString(fmt.Sprintf("\tcpu核数 : %v | cpu用户态比率 : %v%% | cpu空闲比率 : %v%%\n", si.CPUNum, si.CPUUser * 100, si.CPUFree * 100))
+	buff.WriteString(fmt.Sprintf("\tcpu核数 : %v | cpu用户态比率 : %.2f%% | cpu空闲比率 : %.2f%%\n", si.CPUNum, si.CPUUser * 100, si.CPUFree * 100))
 	buff.WriteString("* Disk Info : \n")
 	buff.WriteString(fmt.Sprintf("\t已用磁盘空间 : %v(MB) | 可用磁盘空间 : %v(MB) | 总磁盘空间 : %v(MB)\n", si.DiskUsed/mb,si.DiskFree/mb,si.DiskTotal/mb))
 	buff.WriteString("* Memory Info : \n")
