@@ -1,14 +1,13 @@
 package os_linux
 
 import (
-
 	"fmt"
+	tm "github.com/xy63237777/go-lib-utils/time"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
-	tm "github.com/xy63237777/go-lib-utils/time"
 	"syscall"
 )
 
@@ -64,6 +63,7 @@ func (si *SystemInfo) String() string {
 // GoMemory 获取当前go程序的内存使用,返回字节数.
 func GoMemory() uint64 {
 	stat := new(runtime.MemStats)
+
 	runtime.ReadMemStats(stat)
 	return stat.Alloc
 }

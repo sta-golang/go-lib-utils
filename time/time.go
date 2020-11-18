@@ -10,8 +10,7 @@ const (
 	layoutTime = "15:04:05"
 	layoutDateTime = "2006-01-02 15:04:05"
 )
-
-var cstZone = time.FixedZone("CST", 8*3600)
+var cstZone *time.Location
 
 // GetNowDateTimeStr 获取当前时间日期的字符串
 func GetNowDateTimeStr() string{
