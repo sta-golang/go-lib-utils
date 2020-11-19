@@ -16,5 +16,5 @@ func main() {
 	list.Add("hello")
 	list.Add("world")
 	list.Add("golang")
-
+	fmt.Println((4 << 2) - (4 >> 1))
 }
