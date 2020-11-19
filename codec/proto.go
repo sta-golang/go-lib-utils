@@ -25,8 +25,11 @@ func (pc *protoCodec) Marshal(body interface{}) ([]byte, error) {
 	return pc.helper.Marshal(body)
 }
 
-func (pc *protoCodec) ReplaceJsonCodec(helper ProtoHelper) {
+func (pc *protoCodec) ReplaceProtoCodec(helper ProtoHelper) {
 	if helper == nil {
+		return
+	}
+	if _, ok := helper.(*protoCodec); ok {
 		return
 	}
 	pc.helper = helper

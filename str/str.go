@@ -1,4 +1,4 @@
-package string
+package str
 
 import (
 	"hash/crc32"
@@ -27,7 +27,6 @@ func StringToBytes(s string) []byte {
 func CRC32(str string) uint32 {
 	return crc32.ChecksumIEEE(StringToBytes(str))
 }
-
 
 // IsEmpty 字符串是否为空(包括空格).
 func IsEmpty(str string) bool {

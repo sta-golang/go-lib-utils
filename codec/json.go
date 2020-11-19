@@ -25,6 +25,9 @@ func (jc *jsonCodec) ReplaceJsonCodec(helper JsonHelper) {
 	if helper == nil {
 		return
 	}
+	if _, ok := helper.(*jsonCodec); ok {
+		return
+	}
 	jc.helper = helper
 }
 
