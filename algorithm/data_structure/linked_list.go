@@ -18,10 +18,10 @@ func NewLinkedList() *LinkedList {
 	tail := &linkedListNode{}
 	head.next = tail
 	tail.prev = head
-	return &linkedList{
-		head:head,
-		tail:tail,
-		size:0,
+	return &LinkedList{
+		head: head,
+		tail: tail,
+		size: 0,
 	}
 }
 
@@ -44,11 +44,11 @@ func (ll *LinkedList) GetHead() interface{} {
 }
 
 // AddFirst 添加一个头结点
-func (ll *linkedList) AddFirst(data interface{})  {
+func (ll *LinkedList) AddFirst(data interface{}) {
 	if data == nil {
 		return
 	}
-	node := &linkedListNode{Data:data, next:ll.head.next, prev:ll.head}
+	node := &linkedListNode{Data: data, next: ll.head.next, prev: ll.head}
 	ll.head.next.prev = node
 	ll.head.next = node
 	ll.size++
@@ -85,7 +85,7 @@ func (ll *LinkedList) Add(data interface{}) {
 	if data == nil {
 		return
 	}
-	node := &linkedListNode{Data:data, next:ll.tail, prev:ll.tail.prev}
+	node := &linkedListNode{Data: data, next: ll.tail, prev: ll.tail.prev}
 	ll.tail.prev.next = node
 	ll.tail.prev = node
 	ll.size++
@@ -111,7 +111,7 @@ func (ll *LinkedList) Get(index int) interface{} {
 	if index < 0 {
 		temp := ll.tail.prev
 		end := -index
-		for i := 1; i < end;i++ {
+		for i := 1; i < end; i++ {
 			temp = temp.prev
 		}
 		return temp.Data
@@ -123,3 +123,8 @@ func (ll *LinkedList) Get(index int) interface{} {
 	return temp.Data
 }
 
+func (ll *LinkedList) Clean() {
+	ll.size = 0
+	ll.head.next = ll.tail
+	ll.tail.prev = ll.head
+}

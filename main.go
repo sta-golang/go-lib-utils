@@ -8,12 +8,13 @@ import (
 
 func main() {
 	m := map[string]int{
-		"123":1,"345":2,
+		"123": 1, "345": 2,
 	}
 	bytes, e := codec.API.JsonAPI.Marshal(m)
-	fmt.Println(string(bytes),e)
+	fmt.Println(string(bytes), e)
 	list := data_structure.NewLinkedList()
 	list.Add("hello")
 	list.Add("world")
 	list.Add("golang")
+
 }
