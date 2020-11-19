@@ -31,8 +31,8 @@ func (jc *jsonCodec) ReplaceJsonCodec(helper JsonHelper) {
 type defaultJson struct {
 }
 
-
 func (dj *defaultJson) Marshal(v interface{}) ([]byte, error) {
+
 	return json.Marshal(v)
 }
 

@@ -6,14 +6,14 @@ type linkedListNode struct {
 	Data interface{}
 }
 
-type linkedList struct {
+type LinkedList struct {
 	size int
 	head *linkedListNode
 	tail *linkedListNode
 }
 
 // NewLinkedList 创建函数
-func NewLinkedList() *linkedList {
+func NewLinkedList() *LinkedList {
 	head := &linkedListNode{}
 	tail := &linkedListNode{}
 	head.next = tail
@@ -26,17 +26,17 @@ func NewLinkedList() *linkedList {
 }
 
 // Size 大小
-func (ll *linkedList) Size() int {
+func (ll *LinkedList) Size() int {
 	return ll.size
 }
 
 // IsEmpty 是否为空
-func (ll *linkedList) IsEmpty() bool {
+func (ll *LinkedList) IsEmpty() bool {
 	return ll.head.next == ll.tail
 }
 
 // GetHead 获取头结点的数据
-func (ll *linkedList) GetHead() interface{} {
+func (ll *LinkedList) GetHead() interface{} {
 	if ll.Size() == 0 {
 		return nil
 	}
@@ -55,7 +55,7 @@ func (ll *linkedList) AddFirst(data interface{})  {
 }
 
 // RemoveHead 把头结点删除
-func (ll *linkedList) RemoveHead() (interface{}, bool) {
+func (ll *LinkedList) RemoveHead() (interface{}, bool) {
 	if ll.Size() == 0 {
 		return nil, false
 	}
@@ -68,7 +68,7 @@ func (ll *linkedList) RemoveHead() (interface{}, bool) {
 }
 
 // RemoveTail 将最后一个删除掉
-func (ll *linkedList) RemoveTail() (interface{}, bool) {
+func (ll *LinkedList) RemoveTail() (interface{}, bool) {
 	if ll.Size() == 0 {
 		return nil, false
 	}
@@ -81,7 +81,7 @@ func (ll *linkedList) RemoveTail() (interface{}, bool) {
 }
 
 // Add 尾插法
-func (ll *linkedList) Add(data interface{}) {
+func (ll *LinkedList) Add(data interface{}) {
 	if data == nil {
 		return
 	}
@@ -92,7 +92,7 @@ func (ll *linkedList) Add(data interface{}) {
 }
 
 // Iterator 获取迭代的切片
-func (ll *linkedList) Iterator() []interface{} {
+func (ll *LinkedList) Iterator() []interface{} {
 	ret := make([]interface{}, ll.size)
 	i := 0
 	for temp := ll.head.next; temp.next != nil; temp = temp.next {
@@ -104,7 +104,7 @@ func (ll *linkedList) Iterator() []interface{} {
 
 // Get 使用下标来获取数据支持负数
 // 下标从0开始。负数则从-1开始 -1代表最后一个 -2代表倒数第二个
-func (ll *linkedList) Get(index int) interface{} {
+func (ll *LinkedList) Get(index int) interface{} {
 	if (index > 0 && index >= ll.size) || (index < 0 && -index > ll.size) {
 		return nil
 	}
