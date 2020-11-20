@@ -46,6 +46,15 @@ func (uf *UnionFind) Connected(p, q interface{}) bool {
 	return uf.find(pInt) == uf.find(qInt)
 }
 
+func (uf *UnionFind) GetConnects() [][]interface{} {
+	ret := make([][]interface{}, uf.count)
+	for key, val := range uf.table {
+		index := uf.find(val)
+		ret[index] = append(ret[index], key)
+	}
+	return ret
+}
+
 // 合并两个分量
 func (uf *UnionFind) Union(p, q interface{}) bool {
 	pInt := uf.getIDForTable(p)
