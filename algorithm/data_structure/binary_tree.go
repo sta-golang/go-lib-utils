@@ -99,7 +99,7 @@ func (bt *BinaryTree) selectKey(node *binaryTreeNode, k int) *binaryTreeNode {
 	if node == nil {
 		return nil
 	}
-	t := node.leftNode.size
+	t := bt.getSize(node.leftNode)
 	if t > k {
 		return bt.selectKey(node.leftNode, k)
 	} else if t < k {
@@ -120,9 +120,9 @@ func (bt *BinaryTree) rank(node *binaryTreeNode, key Comparable) int {
 	if cmp < 0 {
 		return bt.rank(node.leftNode, key)
 	} else if cmp > 0 {
-		return 1 + node.leftNode.size + bt.rank(node.rightNode, key)
+		return 1 + bt.getSize(node.leftNode) + bt.rank(node.rightNode, key)
 	}
-	return node.leftNode.size
+	return bt.getSize(node.leftNode)
 }
 
 func (bt *BinaryTree) Floor(key Comparable) Comparable {

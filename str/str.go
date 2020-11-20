@@ -17,15 +17,15 @@ func BytesToString(bys []byte) string {
 
 // StringToBytes 0copy将String转换成bytes数组
 // ZeroCopy 不产生内存拷贝
-func StringToBytes(s string) []byte {
-	x := (*[2]uintptr)(unsafe.Pointer(&s)) // 获取s的起始地址开始后的两个 uintptr 指针
-	h := [3]uintptr{x[0], x[1], x[1]}      // 构造三个指针数组
+func StringToBytes(s *string) []byte {
+	x := (*[2]uintptr)(unsafe.Pointer(s)) // 获取s的起始地址开始后的两个 uintptr 指针
+	h := [3]uintptr{x[0], x[1], x[1]}     // 构造三个指针数组
 	return *(*[]byte)(unsafe.Pointer(&h))
 }
 
 // CRC32 计算一个字符串的 crc32 多项式.
 func CRC32(str string) uint32 {
-	return crc32.ChecksumIEEE(StringToBytes(str))
+	return crc32.ChecksumIEEE(StringToBytes(&str))
 }
 
 // IsEmpty 字符串是否为空(包括空格).

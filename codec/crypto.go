@@ -41,7 +41,7 @@ type md5Crypto struct {
 
 func (mc *md5Crypto) Encode(data string) (string, error) {
 	h := md5.New()
-	_, err := h.Write(str.StringToBytes(data))
+	_, err := h.Write(str.StringToBytes(&data))
 	if err != nil {
 		return "", err
 	}

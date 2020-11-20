@@ -22,4 +22,11 @@ func main() {
 	//sum := md5.Sum([]byte(pwd))
 	str := hex.EncodeToString([]byte(pwd))
 	fmt.Println(str)
+	strs := make([]string, 0, 2)
+	strs = append(strs, "hello")
+	strs = append(strs, "hello")
+	strs = append(strs, "hello")
+	strs = append(strs, "hello")
+	strs = append(strs, "hello")
+	fmt.Println(strs)
 }
