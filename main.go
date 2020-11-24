@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/xy63237777/go-lib-utils/algorithm/data_structure"
 	"github.com/xy63237777/go-lib-utils/codec"
+	ow "github.com/xy63237777/go-lib-utils/os/os_windows"
 )
 
 func main() {
@@ -29,4 +30,5 @@ func main() {
 	strs = append(strs, "hello")
 	strs = append(strs, "hello")
 	fmt.Println(strs)
+	fmt.Println(ow.GetWindowsSystemInfo())
 }
