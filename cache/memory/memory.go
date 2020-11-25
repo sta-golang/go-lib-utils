@@ -35,10 +35,10 @@ type Memory struct {
 }
 
 type Config struct {
-	Shards      int
-	GCInterval  int
-	MaxKey      int
-	SetChanSize int
+	Shards      int `yaml:"shards"`
+	GCInterval  int `yaml:"gc_interval"`
+	MaxKey      int `yaml:"max_Key"`
+	SetChanSize int `yaml:"set_Chan_Size"`
 }
 
 func NewConfig(shards, gcInter, maxKey, setChanSize int) Config {
