@@ -10,15 +10,18 @@ const (
 	FileCloseError   = 04
 	FileReadDirError = 05
 
-	dfsStep = 2
+	dfsStep    = 2
+	globalSkip = 3
 )
 
 func init() {
 	globalLogger = NewConsoleLog(INFO, PREFIX)
+	globalLogger.setSkip(globalSkip)
 }
 
 func SetGlobalLogger(logger Logger) {
 	globalLogger = logger
+	globalLogger.setSkip(globalSkip)
 }
 
 func SetPrefix(str string) {

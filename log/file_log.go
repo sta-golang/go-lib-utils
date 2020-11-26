@@ -22,22 +22,24 @@ const (
 	defMaxSize     = 16 * mb
 	allLevel       = "ALL"
 	defFileDir     = "./log"
+	minFileSize    = 10 * mb
 )
 
 type fileLog struct {
 	writerHelper *fileLogWriter
 	level        Level
 	prefix       string
+	skip         int
 }
 
 type FileLogConfig struct {
-	FileDir     string   `yaml:"file_dir"`
-	FileName    string   `yaml:"file_name"`
-	DayAge      int      `yaml:"day_age"`
-	LogLevel    Level    `yaml:"log_level"`
-	Prefix      string   `yaml:"pre_fix"`
-	MaxSize     int64    `yaml:"max_size"`
-	AloneWriter []string `yaml:"alone_writer"`
+	FileDir     string   `yaml:"file_dir"`     // 文件目录 默认为./log
+	FileName    string   `yaml:"file_name"`    // 文件前缀名 默认为sta
+	DayAge      int      `yaml:"day_age"`      // 文件保留日期 默认为7天
+	LogLevel    Level    `yaml:"log_level"`    // 日志等级 默认为INFO 这个可以之后设置
+	Prefix      string   `yaml:"pre_fix"`      // 日志输出前缀 默认为 FOUR-SEASONS: STA
+	MaxSize     int64    `yaml:"max_size"`     // 最大大小 设置0或者辅助 默认失效。 最小为10mb 如果小于10mb则变成16mb
+	AloneWriter []string `yaml:"alone_writer"` // 单独数组的等级，设置后没有出现的向等级低的方向靠
 }
 
 var DefaultFileLogConfig = func() *FileLogConfig {
@@ -71,6 +73,9 @@ func NewFileLog(conf *FileLogConfig) Logger {
 			table[key] = index
 		}
 	}
+	if conf.MaxSize > 0 && conf.MaxSize < minFileSize {
+		conf.MaxSize = defMaxSize
+	}
 	ret := &fileLog{
 		writerHelper: &fileLogWriter{
 			helpers:  nil,
@@ -81,6 +86,7 @@ func NewFileLog(conf *FileLogConfig) Logger {
 			maxSize:  conf.MaxSize,
 		},
 		level:  conf.LogLevel,
+		skip:   dfsStep,
 		prefix: conf.Prefix,
 	}
 	helpers := make([]*writerHelper, len(LEVEL_FLAGS))
@@ -210,7 +216,7 @@ func (fl *fileLog) print(level Level, format string, args ...interface{}) {
 	}
 
 	logFmt := "%s %s [%s] %s ==> %s\n"
-	_, transFile, transLine, _ := runtime.Caller(dfsStep)
+	_, transFile, transLine, _ := runtime.Caller(fl.skip)
 	data := fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), LEVEL_FLAGS[level],
 		fmt.Sprintf("%s:%d", transFile, transLine), fmt.Sprintf(format, args...))
 
@@ -222,11 +228,15 @@ func (fl *fileLog) println(level Level, args ...interface{}) {
 		return
 	}
 	logFmt := "%s %s [%s] %s ==> "
-	_, transFile, transLine, _ := runtime.Caller(dfsStep)
+	_, transFile, transLine, _ := runtime.Caller(fl.skip)
 	data := fmt.Sprintf("%s%s", fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), LEVEL_FLAGS[level],
 		fmt.Sprintf("%s:%d", transFile, transLine)),
 		fmt.Sprintln(args...))
 	fl.writerHelper.writer(level, str.StringToBytes(&data))
+}
+
+func (fl *fileLog) setSkip(skip int) {
+	fl.skip = skip
 }
 
 type fileLogWriter struct {

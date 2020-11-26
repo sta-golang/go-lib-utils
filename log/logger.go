@@ -51,4 +51,6 @@ type Logger interface {
 	SetLevel(level Level)
 	// GetLevel 获取输出端日志级别
 	GetLevel() string
+
+	setSkip(skip int)
 }

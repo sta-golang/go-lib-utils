@@ -16,6 +16,7 @@ type consoleLog struct {
 	nonClear bool
 	prefix   string
 	level    Level
+	skip     int
 }
 
 func NewConsoleLog(level Level, prefix string) Logger {
@@ -26,7 +27,12 @@ func NewConsoleLog(level Level, prefix string) Logger {
 		nonClear: runtime.GOOS == "windows",
 		level:    level,
 		prefix:   prefix,
+		skip:     dfsStep,
 	}
+}
+
+func (cl *consoleLog) setSkip(skip int) {
+	cl.skip = skip
 }
 
 func (cl *consoleLog) print(level Level, format string, args ...interface{}) {
@@ -48,7 +54,7 @@ func (cl *consoleLog) print(level Level, format string, args ...interface{}) {
 			logFormat = "%s \033[36m%s\033[0m [\033[35m%s\033[0m] %s\n"
 		}
 	}
-	_, transFile, transLine, _ := runtime.Caller(dfsStep)
+	_, transFile, transLine, _ := runtime.Caller(cl.skip)
 	fmt.Fprintf(console, logFormat, cl.prefix, tm.GetNowDateTimeStr(),
 		LEVEL_FLAGS[level], fmt.Sprintf("%s:%d", transFile, transLine), fmt.Sprintf(format, args...))
 
@@ -73,7 +79,7 @@ func (cl *consoleLog) println(level Level, args ...interface{}) {
 			logFormat = "%s \033[36m%s\033[0m [\033[35m%s\033[0m] %s\n"
 		}
 	}
-	_, transFile, transLine, _ := runtime.Caller(dfsStep)
+	_, transFile, transLine, _ := runtime.Caller(cl.skip)
 	fmt.Fprintf(console, fmt.Sprintf("%s%s\n", fmt.Sprintf(logFormat, cl.prefix, tm.GetNowDateTimeStr(),
 		LEVEL_FLAGS[level], fmt.Sprintf("%s:%d", transFile, transLine)), fmt.Sprint(args...)))
 

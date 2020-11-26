@@ -34,10 +34,14 @@ func main() {
 	strs = append(strs, "hello")
 	fmt.Println(strs)
 	fmt.Println(ow.GetWindowsSystemInfo())
+
 	fileLog := log.NewFileLog(log.DefaultFileLogConfigForAloneWriter([]string{
 		log.LEVEL_FLAGS[log.WARNING], log.LEVEL_FLAGS[log.ERROR]}))
+
 	fileLog.Info("hello")
 	fileLog.Warn("warn")
 	fileLog.Error("error", "hahahha")
 	fileLog.Errorf("xixixi")
+	log.Info("hello")
+	log.Infof("test %s", "sta")
 }
