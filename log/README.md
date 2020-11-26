@@ -68,3 +68,15 @@ prefix yyyy-mm-dd hh:MM:ss [level] 代码调用的文件:代码调用的行数 =
 例如
 
 `[FOUR-SEASONS: STA] 2020-11-26 15:19:47 [INFO] /home/thesevensky/gocode/sta-test/main.go:46 ==> test sta`
+
+
+#### 最佳实践
+
+例如下面代码在任何可能发生err的地方调用打印ERROR
+由于此组件有打印代码行号的功能所以可以迅速定位bug
+`err := func()
+if err != nil {
+log.Error(err)
+return err
+}
+`
