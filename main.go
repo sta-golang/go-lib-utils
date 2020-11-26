@@ -44,4 +44,5 @@ func main() {
 	fileLog.Errorf("xixixi")
 	log.Info("hello")
 	log.Infof("test %s", "sta")
+
 }
