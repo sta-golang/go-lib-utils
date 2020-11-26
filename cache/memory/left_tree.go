@@ -188,6 +188,7 @@ func (tree *expireLeftTree) doTraversalDel(node *removeNode, ret *[]string) {
 	}
 	*ret = append(*ret, node.values...)
 	tree.doTraversalDel(node.left, ret)
+	tree.nodePool.Put(node)
 }
 
 //创建node
@@ -201,9 +202,4 @@ func (tree *expireLeftTree) newNode(key int64, val string, size int) (retNode *r
 	retNode.right = nil
 	retNode.size = size
 	return retNode
-}
-
-//释放node
-func (tree *expireLeftTree) releaseNode(node *removeNode) {
-	tree.nodePool.Put(node)
 }
