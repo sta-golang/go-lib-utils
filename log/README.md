@@ -9,8 +9,9 @@
 
 然后调用
 
-`log.Info("hello")
-log.Infof("test %s", "sta")`
+`log.Info("hello")`
+
+`log.Infof("test %s", "sta")`
 
 当然这个的打印则是在控制台打印
 
