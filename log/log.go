@@ -1,7 +1,7 @@
 package log
 
-var gloabLogger Logger
-var FrameworkLogger = NewConsoleLog(INFO, "[STA : utils-log]")
+var globalLogger Logger
+var FrameworkLogger = NewConsoleLog(DEBUG, "[STA : go-groups-utils]")
 
 const (
 	CurrencyError    = 00
@@ -9,10 +9,16 @@ const (
 	FileWriterError  = 03
 	FileCloseError   = 04
 	FileReadDirError = 05
+
+	dfsStep = 2
 )
 
 func init() {
-	gloabLogger = NewConsoleLog(INFO, PREFIX)
+	globalLogger = NewConsoleLog(INFO, PREFIX)
+}
+
+func SetGlobalLogger(logger Logger) {
+	globalLogger = logger
 }
 
 func SetPrefix(str string) {
@@ -20,50 +26,50 @@ func SetPrefix(str string) {
 }
 
 func SetLevel(level Level) {
-	gloabLogger.SetLevel(level)
+	globalLogger.SetLevel(level)
 }
 
 // GetLevel 获取输出端日志级别
 func GetLevel() string {
-	return gloabLogger.GetLevel()
+	return globalLogger.GetLevel()
 }
 
 func Debugf(format string, args ...interface{}) {
-	gloabLogger.Debugf(format, args...)
+	globalLogger.Debugf(format, args...)
 }
 
 func Warnf(format string, args ...interface{}) {
-	gloabLogger.Warnf(format, args...)
+	globalLogger.Warnf(format, args...)
 }
 
 func Infof(format string, args ...interface{}) {
-	gloabLogger.Infof(format, args...)
+	globalLogger.Infof(format, args...)
 }
 
 func Errorf(format string, args ...interface{}) {
-	gloabLogger.Errorf(format, args...)
+	globalLogger.Errorf(format, args...)
 }
 
 func Fatalf(format string, args ...interface{}) {
-	gloabLogger.Fatalf(format, args...)
+	globalLogger.Fatalf(format, args...)
 }
 
 func Debug(args ...interface{}) {
-	gloabLogger.Debug(args...)
+	globalLogger.Debug(args...)
 }
 
 func Warn(args ...interface{}) {
-	gloabLogger.Warn(args...)
+	globalLogger.Warn(args...)
 }
 
 func Info(args ...interface{}) {
-	gloabLogger.Info(args...)
+	globalLogger.Info(args...)
 }
 
 func Error(args ...interface{}) {
-	gloabLogger.Error(args...)
+	globalLogger.Error(args...)
 }
 
 func Fatal(args ...interface{}) {
-	gloabLogger.Fatal(args...)
+	globalLogger.Fatal(args...)
 }

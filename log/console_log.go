@@ -2,14 +2,10 @@ package log
 
 import (
 	"fmt"
+	tm "github.com/xy63237777/go-lib-utils/time"
 	"io"
 	"os"
 	"runtime"
-	"time"
-)
-
-const (
-	TIME_FORMAT = "2006-01-02 15:04:05"
 )
 
 var (
@@ -23,7 +19,7 @@ type consoleLog struct {
 }
 
 func NewConsoleLog(level Level, prefix string) Logger {
-	if prefix == "" {
+	if prefix == "windows" {
 		prefix = PREFIX
 	}
 	return &consoleLog{
@@ -34,8 +30,10 @@ func NewConsoleLog(level Level, prefix string) Logger {
 }
 
 func (cl *consoleLog) print(level Level, format string, args ...interface{}) {
-
-	var logFormat = "%s %s [%s] ==> %s\n"
+	if level < cl.level {
+		return
+	}
+	var logFormat = "%s %s [%s] %s ==> %s\n"
 	if !cl.nonClear {
 		switch level {
 		case DEBUG:
@@ -50,9 +48,9 @@ func (cl *consoleLog) print(level Level, format string, args ...interface{}) {
 			logFormat = "%s \033[36m%s\033[0m [\033[35m%s\033[0m] %s\n"
 		}
 	}
-
-	fmt.Fprintf(console, logFormat, cl.prefix, time.Now().Format(TIME_FORMAT),
-		LEVEL_FLAGS[level], fmt.Sprintf(format, args...))
+	_, transFile, transLine, _ := runtime.Caller(dfsStep)
+	fmt.Fprintf(console, logFormat, cl.prefix, tm.GetNowDateTimeStr(),
+		LEVEL_FLAGS[level], fmt.Sprintf("%s:%d", transFile, transLine), fmt.Sprintf(format, args...))
 
 }
 
@@ -60,7 +58,7 @@ func (cl *consoleLog) println(level Level, args ...interface{}) {
 	if level < cl.level {
 		return
 	}
-	var logFormat = "%s %s [%s] ==> "
+	var logFormat = "%s %s [%s] %s ==> "
 	if !cl.nonClear {
 		switch level {
 		case DEBUG:
@@ -75,10 +73,10 @@ func (cl *consoleLog) println(level Level, args ...interface{}) {
 			logFormat = "%s \033[36m%s\033[0m [\033[35m%s\033[0m] %s\n"
 		}
 	}
+	_, transFile, transLine, _ := runtime.Caller(dfsStep)
+	fmt.Fprintf(console, fmt.Sprintf("%s%s\n", fmt.Sprintf(logFormat, cl.prefix, tm.GetNowDateTimeStr(),
+		LEVEL_FLAGS[level], fmt.Sprintf("%s:%d", transFile, transLine)), fmt.Sprint(args...)))
 
-	fmt.Fprintf(console, logFormat, cl.prefix, time.Now().Format(TIME_FORMAT),
-		LEVEL_FLAGS[level], args)
-	fmt.Fprintln(console)
 }
 
 func (cl *consoleLog) SetLevel(level Level) {

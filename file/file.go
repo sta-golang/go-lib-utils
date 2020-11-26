@@ -27,3 +27,12 @@ func GetExt(fpath string) string {
 	}
 	return suffix
 }
+
+func IsDirExists(path string) bool {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return os.IsExist(err) //err!=nil,使用os.IsExist()判断为false,说明文件或文件夹不存在
+	} else {
+		return fi.IsDir() //err==nil,说明文件或文件夹存在
+	}
+}

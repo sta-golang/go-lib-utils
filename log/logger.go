@@ -3,7 +3,14 @@ package log
 import "sync"
 
 var (
-	LEVEL_FLAGS    = [...]string{"DEBUG", " INFO", " WARN", "ERROR", "FATAL"}
+	LEVEL_FLAGS = [...]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
+	LEVEL_INDEX = map[string]Level{
+		"DEBUG": DEBUG,
+		"INFO":  INFO,
+		"WARN":  WARNING,
+		"ERROR": ERROR,
+		"FATAL": FATAL,
+	}
 	logGlobalMutex sync.Mutex
 	PREFIX         = "[FOUR-SEASONS: STA]"
 )
