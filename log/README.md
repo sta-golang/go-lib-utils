@@ -50,7 +50,9 @@ log.Infof("test %s", "sta")`
  
  #### 高级功能
  
- `type FileLogConfig struct {
+ 
+ ```go
+ type FileLogConfig struct {
   	FileDir     string   `yaml:"file_dir"`     // 文件目录 默认为./log
   	FileName    string   `yaml:"file_name"`    // 文件前缀名 默认为sta
   	DayAge      int      `yaml:"day_age"`      // 文件保留日期 默认为7天
@@ -58,7 +60,9 @@ log.Infof("test %s", "sta")`
   	Prefix      string   `yaml:"pre_fix"`      // 日志输出前缀 默认为 FOUR-SEASONS: STA
   	MaxSize     int64    `yaml:"max_size"`     // 最大大小 设置0或者辅助 默认失效。 最小为10mb 如果小于10mb则变成16mb
   	AloneWriter []string `yaml:"alone_writer"` // 单独数组的等级，设置后没有出现的向等级低的方向靠
-  }`
+  }
+  ```
+  
   
   可以通过这个配置类来创建file_log
   
