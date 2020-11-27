@@ -1,6 +1,8 @@
 package codec
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type jsonCodec struct {
 	helper JsonHelper

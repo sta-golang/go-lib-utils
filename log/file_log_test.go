@@ -1,16 +1,17 @@
 package log
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func BenchmarkFileLog(b *testing.B) {
-	log := NewFileLog(DefaultFileLogConfigForAloneWriter(
-		[]string{LEVEL_FLAGS[INFO], LEVEL_FLAGS[ERROR]}))
+	log := NewFileLogAndAsync(DefaultFileLogConfigForAloneWriter(
+		[]string{LEVEL_FLAGS[INFO], LEVEL_FLAGS[ERROR]}), time.Second*3)
 	for i := 0; i < b.N; i++ {
-		if i%2 == 0 {
-			log.Info("hello", "world", "golang")
-		} else {
-			log.Error("hello", "world", "golang")
-		}
+		log.Info("hello", "world", "golang")
+		log.Warn("hello", "world", "golang")
+		log.Error("hello", "world", "golang")
 	}
 }
 

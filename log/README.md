@@ -32,8 +32,8 @@ log.Infof("test %s", "sta")`
 
 如果你需要将ERROR INFO等等分开 那么也非常简单
 
-`fileLog := log.NewFileLog(log.DefaultFileLogConfigForAloneWriter([]string{
- 		log.LEVEL_FLAGS[log.INFO], log.LEVEL_FLAGS[log.ERROR]}))
+`fileLog := log.NewFileLog(log.DefaultFileLogConfigForAloneWriter(
+ 		[]string{log.GetLevelName(log.INFO), log.GetLevelName(log.ERROR)}))
  	`
  	
  代码虽然很长 但是你仔细看看就很简单
@@ -85,4 +85,23 @@ prefix yyyy-mm-dd hh:MM:ss [level] 代码调用的文件:代码调用的行数 =
 		log.Errorf("xxx Err %v", err)
 		return err
 	}
+```
+
+#### 高级用法
+
+此方法可以极高的提高你的性能。但是它容易丢失一段时间的DEBUG-WARN级别的日志
+当然你的单独写入要是有WARN的话就会丢失到INFO级别
+
+具体的请看example
+
+```go
+defer func() {
+		if er := recover(); er != nil {
+			source.Sync()
+			panic(er)
+		}
+	}()
+	logger := log.NewFileLogAndAsync(log.DefaultFileLogConfigForAloneWriter(
+		[]string{log.GetLevelName(log.INFO), log.GetLevelName(log.ERROR)}), time.Second*3)
+	log.SetGlobalLogger(logger)
 ```

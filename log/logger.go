@@ -3,8 +3,8 @@ package log
 import "sync"
 
 var (
-	LEVEL_FLAGS = [...]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
-	LEVEL_INDEX = map[string]Level{
+	levelFlages = [...]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
+	levelIndexs = map[string]Level{
 		"DEBUG": DEBUG,
 		"INFO":  INFO,
 		"WARN":  WARNING,
@@ -24,6 +24,13 @@ const (
 	ERROR
 	FATAL
 )
+
+func GetLevelName(level Level) string {
+	if level < DEBUG || level > FATAL {
+		return ""
+	}
+	return levelFlages[level]
+}
 
 // Logger log接口
 type Logger interface {

@@ -56,7 +56,7 @@ func (cl *consoleLog) print(level Level, format string, args ...interface{}) {
 	}
 	_, transFile, transLine, _ := runtime.Caller(cl.skip)
 	fmt.Fprintf(console, logFormat, cl.prefix, tm.GetNowDateTimeStr(),
-		LEVEL_FLAGS[level], fmt.Sprintf("%s:%d", transFile, transLine), fmt.Sprintf(format, args...))
+		levelFlages[level], fmt.Sprintf("%s:%d", transFile, transLine), fmt.Sprintf(format, args...))
 
 }
 
@@ -81,7 +81,7 @@ func (cl *consoleLog) println(level Level, args ...interface{}) {
 	}
 	_, transFile, transLine, _ := runtime.Caller(cl.skip)
 	fmt.Fprintf(console, fmt.Sprintf("%s%s\n", fmt.Sprintf(logFormat, cl.prefix, tm.GetNowDateTimeStr(),
-		LEVEL_FLAGS[level], fmt.Sprintf("%s:%d", transFile, transLine)), fmt.Sprint(args...)))
+		levelFlages[level], fmt.Sprintf("%s:%d", transFile, transLine)), fmt.Sprint(args...)))
 
 }
 
@@ -94,7 +94,7 @@ func (cl *consoleLog) SetLevel(level Level) {
 
 // GetLevel 获取输出端日志级别
 func (cl *consoleLog) GetLevel() string {
-	return LEVEL_FLAGS[cl.level]
+	return levelFlages[cl.level]
 }
 
 func (cl *consoleLog) Debugf(format string, args ...interface{}) {
