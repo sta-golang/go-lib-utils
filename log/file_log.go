@@ -369,6 +369,7 @@ func (wh *writerHelper) doWriter(data []byte) *err.Error {
 	}
 	if wh.target.maxSize > 0 && atomic.LoadInt64(&wh.writerSize) > wh.target.maxSize {
 		wh.lock.Lock()
+		wh.reCreateFile()
 		wh.lock.Unlock()
 	}
 	return nil

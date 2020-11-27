@@ -1,17 +1,47 @@
 package log
 
 import (
+	"os"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
 
 func BenchmarkFileLogAs(b *testing.B) {
+	//now := time.Now()
 	log := NewFileLogAndAsync(DefaultFileLogConfigForAloneWriter(
-		[]string{GetLevelName(INFO), GetLevelName(ERROR)}), time.Second*3)
+		[]string{GetLevelName(INFO), GetLevelName(WARNING), GetLevelName(ERROR)}), time.Second*3)
 	for i := 0; i < b.N; i++ {
 		log.Info("hello", "world", "golang")
 		log.Warn("hello", "world", "golang")
 		log.Error("hello", "world", "golang")
+
+	}
+	//fmt.Println(time.Now().Sub(now).Milliseconds())
+}
+
+func BenchmarkNewFileLogReload(b *testing.B) {
+	b.ResetTimer()
+	w := writerHelper{
+		level:      "all",
+		openFile:   atomic.Value{},
+		openDate:   "",
+		openTime:   0,
+		writerSize: 0,
+		lock:       sync.Mutex{},
+		target: &fileLogWriter{
+			helpers:  nil,
+			fileDir:  "./sta",
+			closeCh:  make(chan *os.File, 1024),
+			dayAge:   7,
+			fileName: "sta",
+			maxSize:  0,
+			initFlag: false,
+		},
+	}
+	for i := 0; i < b.N; i++ {
+		w.doReLoadFile()
 	}
 }
 
