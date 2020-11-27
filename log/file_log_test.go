@@ -5,9 +5,19 @@ import (
 	"time"
 )
 
-func BenchmarkFileLog(b *testing.B) {
+func BenchmarkFileLogAs(b *testing.B) {
 	log := NewFileLogAndAsync(DefaultFileLogConfigForAloneWriter(
-		[]string{LEVEL_FLAGS[INFO], LEVEL_FLAGS[ERROR]}), time.Second*3)
+		[]string{GetLevelName(INFO), GetLevelName(ERROR)}), time.Second*3)
+	for i := 0; i < b.N; i++ {
+		log.Info("hello", "world", "golang")
+		log.Warn("hello", "world", "golang")
+		log.Error("hello", "world", "golang")
+	}
+}
+
+func BenchmarkFileLogSy(b *testing.B) {
+	log := NewFileLog(DefaultFileLogConfigForAloneWriter(
+		[]string{GetLevelName(INFO), GetLevelName(ERROR)}))
 	for i := 0; i < b.N; i++ {
 		log.Info("hello", "world", "golang")
 		log.Warn("hello", "world", "golang")
@@ -17,7 +27,7 @@ func BenchmarkFileLog(b *testing.B) {
 
 func BenchmarkNewFileLogParallel(b *testing.B) {
 	log := NewFileLog(DefaultFileLogConfigForAloneWriter(
-		[]string{LEVEL_FLAGS[INFO], LEVEL_FLAGS[ERROR]}))
+		[]string{GetLevelName(INFO), GetLevelName(ERROR)}))
 	b.RunParallel(func(pb *testing.PB) {
 		i := 0
 		for pb.Next() {

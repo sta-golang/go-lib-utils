@@ -37,6 +37,114 @@ type fileLog struct {
 	skip         int
 }
 
+func (fl *fileLog) setSkip(skip int) {
+	fl.skip = skip
+}
+
+func (fl *fileLog) SetLevel(level Level) {
+	if level < DEBUG || level > FATAL {
+		return
+	}
+	fl.level = level
+}
+
+func (fl *fileLog) Name() string {
+	return fileLogName
+}
+
+func (fl *fileLog) Sync() error {
+	fl.asyncWriter.ch <- syncFlag
+	return nil
+}
+
+// GetLevel 获取输出端日志级别
+func (fl *fileLog) GetLevel() string {
+	return levelFlages[fl.level]
+}
+
+func (fl *fileLog) Debugf(format string, args ...interface{}) {
+	fl.print(DEBUG, format, args...)
+}
+
+func (fl *fileLog) Warnf(format string, args ...interface{}) {
+	fl.print(WARNING, format, args...)
+}
+
+func (fl *fileLog) Infof(format string, args ...interface{}) {
+	fl.print(INFO, format, args...)
+}
+
+func (fl *fileLog) Errorf(format string, args ...interface{}) {
+	fl.print(ERROR, format, args...)
+}
+
+func (fl *fileLog) Fatalf(format string, args ...interface{}) {
+	fl.print(FATAL, format, args...)
+}
+
+func (fl *fileLog) Debug(args ...interface{}) {
+	fl.println(DEBUG, args...)
+}
+
+func (fl *fileLog) Warn(args ...interface{}) {
+	fl.println(WARNING, args...)
+}
+
+func (fl *fileLog) Info(args ...interface{}) {
+	fl.println(INFO, args...)
+}
+
+func (fl *fileLog) Error(args ...interface{}) {
+	fl.println(ERROR, args...)
+}
+
+func (fl *fileLog) Fatal(args ...interface{}) {
+	fl.println(FATAL, args...)
+}
+
+func (fl *fileLog) print(level Level, format string, args ...interface{}) {
+	if level < fl.level {
+		return
+	}
+
+	logFmt := "%s %s [%s] %s ==> %s\n"
+	_, transFile, transLine, _ := runtime.Caller(fl.skip)
+	data := fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), levelFlages[level],
+		fmt.Sprintf("%s:%d", transFile, transLine), fmt.Sprintf(format, args...))
+	if fl.asyncWriterFunc(level, &data) {
+		return
+	}
+	fl.writerHelper.writer(level, str.StringToBytes(&data))
+}
+
+func (fl *fileLog) println(level Level, args ...interface{}) {
+	if level < fl.level {
+		return
+	}
+	logFmt := "%s %s [%s] %s ==> "
+	_, transFile, transLine, _ := runtime.Caller(fl.skip)
+	data := fmt.Sprintf("%s%s", fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), levelFlages[level],
+		fmt.Sprintf("%s:%d", transFile, transLine)),
+		fmt.Sprintln(args...))
+	if fl.asyncWriterFunc(level, &data) {
+		return
+	}
+	fl.writerHelper.writer(level, str.StringToBytes(&data))
+}
+
+func (fl *fileLog) asyncWriterFunc(level Level, data *string) bool {
+	if fl.asyncWriter != nil && level <= fl.asyncWriter.level {
+		if node, ok := fl.asyncWriter.pool.Get().(*asyncNode); ok {
+			node.level = level
+			node.bys = str.StringToBytes(data)
+
+			fl.asyncWriter.ch <- node
+			return true
+		}
+	}
+	return false
+}
+
 type FileLogConfig struct {
 	FileDir     string   `yaml:"file_dir"`     // 文件目录 默认为./log
 	FileName    string   `yaml:"file_name"`    // 文件前缀名 默认为sta
@@ -73,6 +181,10 @@ var DefaultFileLogConfigForAloneWriter = func(alone []string) *FileLogConfig {
 
 func NewFileLogAndAsync(conf *FileLogConfig, syncTime time.Duration) Logger {
 	return newFileLog(conf, true, syncTime)
+}
+
+func NewFileLog(conf *FileLogConfig) Logger {
+	return newFileLog(conf, false, time.Millisecond)
 }
 
 func newFileLog(conf *FileLogConfig, async bool, asyncTime time.Duration) Logger {
@@ -183,114 +295,6 @@ func newFileLog(conf *FileLogConfig, async bool, asyncTime time.Duration) Logger
 	}
 	go ret.writerHelper.asyncCloseFiles()
 	return ret
-}
-
-func NewFileLog(conf *FileLogConfig) Logger {
-	return newFileLog(conf, false, time.Millisecond)
-}
-
-func (fl *fileLog) SetLevel(level Level) {
-	if level < DEBUG || level > FATAL {
-		return
-	}
-	fl.level = level
-}
-
-func (fl *fileLog) Name() string {
-	return fileLogName
-}
-
-func (fl *fileLog) Sync() error {
-	fl.asyncWriter.ch <- syncFlag
-	return nil
-}
-
-// GetLevel 获取输出端日志级别
-func (fl *fileLog) GetLevel() string {
-	return levelFlages[fl.level]
-}
-
-func (fl *fileLog) Debugf(format string, args ...interface{}) {
-	fl.print(DEBUG, format, args...)
-}
-
-func (fl *fileLog) Warnf(format string, args ...interface{}) {
-	fl.print(WARNING, format, args...)
-}
-
-func (fl *fileLog) Infof(format string, args ...interface{}) {
-	fl.print(INFO, format, args...)
-}
-
-func (fl *fileLog) Errorf(format string, args ...interface{}) {
-	fl.print(ERROR, format, args...)
-}
-
-func (fl *fileLog) Fatalf(format string, args ...interface{}) {
-	fl.print(FATAL, format, args...)
-}
-
-func (fl *fileLog) Debug(args ...interface{}) {
-	fl.println(DEBUG, args...)
-}
-
-func (fl *fileLog) Warn(args ...interface{}) {
-	fl.println(WARNING, args...)
-}
-
-func (fl *fileLog) Info(args ...interface{}) {
-	fl.println(INFO, args...)
-}
-
-func (fl *fileLog) Error(args ...interface{}) {
-	fl.println(ERROR, args...)
-}
-
-func (fl *fileLog) Fatal(args ...interface{}) {
-	fl.println(FATAL, args...)
-}
-
-func (fl *fileLog) print(level Level, format string, args ...interface{}) {
-	if level < fl.level {
-		return
-	}
-
-	logFmt := "%s %s [%s] %s ==> %s\n"
-	_, transFile, transLine, _ := runtime.Caller(fl.skip)
-	data := fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), levelFlages[level],
-		fmt.Sprintf("%s:%d", transFile, transLine), fmt.Sprintf(format, args...))
-	if fl.asyncWriter != nil && level <= fl.asyncWriter.level {
-		if node, ok := fl.asyncWriter.pool.Get().(*asyncNode); ok {
-			node.level = level
-			node.bys = str.StringToBytes(&data)
-			fl.asyncWriter.ch <- node
-		}
-	}
-	fl.writerHelper.writer(level, str.StringToBytes(&data))
-}
-
-func (fl *fileLog) println(level Level, args ...interface{}) {
-	if level < fl.level {
-		return
-	}
-	logFmt := "%s %s [%s] %s ==> "
-	_, transFile, transLine, _ := runtime.Caller(fl.skip)
-	data := fmt.Sprintf("%s%s", fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), levelFlages[level],
-		fmt.Sprintf("%s:%d", transFile, transLine)),
-		fmt.Sprintln(args...))
-	if fl.asyncWriter != nil && level <= fl.asyncWriter.level {
-		if node, ok := fl.asyncWriter.pool.Get().(*asyncNode); ok {
-			node.level = level
-			node.bys = str.StringToBytes(&data)
-
-			fl.asyncWriter.ch <- node
-		}
-	}
-	fl.writerHelper.writer(level, str.StringToBytes(&data))
-}
-
-func (fl *fileLog) setSkip(skip int) {
-	fl.skip = skip
 }
 
 type fileLogWriter struct {
