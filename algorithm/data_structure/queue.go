@@ -26,7 +26,7 @@ func NewQueueWithSize(size int) *Queue {
 		size = 16
 	}
 	return &Queue{
-		elements:  make([]interface{}, c),
+		elements:  make([]interface{}, size),
 		capSize:   size,
 		headIndex: 0,
 		tailIndex: 0,

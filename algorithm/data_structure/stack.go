@@ -22,7 +22,7 @@ func NewStackWithSize(size int) *Stack {
 	return &Stack{
 		cnt:      0,
 		stackCap: size,
-		elements: make([]interface{}, c),
+		elements: make([]interface{}, size),
 	}
 }
 
