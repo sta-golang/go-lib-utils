@@ -15,6 +15,17 @@ func NewStack() *Stack {
 	}
 }
 
+func NewStackWithSize(size int) *Stack {
+	if size <= 0 {
+		size = 16
+	}
+	return &Stack{
+		cnt:      0,
+		stackCap: size,
+		elements: make([]interface{}, c),
+	}
+}
+
 func (s *Stack) Empty() bool {
 	return s.cnt == 0
 }

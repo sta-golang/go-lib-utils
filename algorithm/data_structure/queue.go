@@ -21,6 +21,19 @@ func NewQueue() *Queue {
 	}
 }
 
+func NewQueueWithSize(size int) *Queue {
+	if size <= 0 {
+		size = 16
+	}
+	return &Queue{
+		elements:  make([]interface{}, c),
+		capSize:   size,
+		headIndex: 0,
+		tailIndex: 0,
+		size:      0,
+	}
+}
+
 func (q *Queue) Push(data interface{}) {
 	if q.size != 0 && q.headIndex == q.tailIndex {
 		q.dilatation()
