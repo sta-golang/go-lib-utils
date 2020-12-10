@@ -21,6 +21,22 @@ func BenchmarkFileLogAs(b *testing.B) {
 	//fmt.Println(time.Now().Sub(now).Milliseconds())
 }
 
+func BenchmarkFileLogAsSize(b *testing.B) {
+	//now := time.Now()
+	cfg := DefaultFileLogConfigForAloneWriter(
+		[]string{GetLevelName(INFO), GetLevelName(WARNING), GetLevelName(ERROR)})
+	cfg.MaxSize = defMaxSize
+	log := NewFileLogAndAsync(cfg, time.Second*3)
+
+	for i := 0; i < b.N; i++ {
+		log.Info("hello", "world", "golang")
+		log.Warn("hello", "world", "golang")
+		log.Error("hello", "world", "golang")
+
+	}
+	//fmt.Println(time.Now().Sub(now).Milliseconds())
+}
+
 func BenchmarkNewFileLogReload(b *testing.B) {
 	b.ResetTimer()
 	w := writerHelper{

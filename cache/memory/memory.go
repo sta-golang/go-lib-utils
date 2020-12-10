@@ -2,7 +2,6 @@ package memory
 
 import (
 	"github.com/xy63237777/go-lib-utils/cache"
-	"github.com/xy63237777/go-lib-utils/log"
 	"github.com/xy63237777/go-lib-utils/str"
 	"hash/crc32"
 	"sync"
@@ -213,9 +212,6 @@ func (m *Memory) gcRoutine() {
 		keys := m.gcTree.Pruning(curSecond)
 		if keys == nil {
 			continue
-		}
-		if log.GlobalLevel == log.DEBUG {
-			log.Debug("gcTree pruning keys : %v", keys)
 		}
 		for _, key := range keys {
 			splitNum := m.shardsNum(key)

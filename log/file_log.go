@@ -328,6 +328,7 @@ func (fl *fileLogWriter) asyncCloseFiles() {
 			FrameworkLogger.Error(err.NewError(err.LogErrCode+FileCloseError,
 				fmt.Errorf("%s file clouse Err", fi.Name())))
 		}
+
 	}
 }
 
@@ -383,11 +384,12 @@ func (wh *writerHelper) getFilePath() string {
 
 func (wh *writerHelper) reCreateFile() {
 	if wh.target.maxSize > 0 && atomic.LoadInt64(&wh.writerSize) >= wh.target.maxSize {
-		atomic.StoreInt64(&wh.target.maxSize, 0)
 
+		atomic.StoreInt64(&wh.target.maxSize, 0)
 		// 旧文件改名
 		oldPath := wh.getFilePath()
 		newName := fmt.Sprintf("%s.%s", oldPath, tm.GetNowTimeStr())
+		// 这里适用于linux 不适用于windows
 		if _, e := os.Stat(oldPath); !os.IsNotExist(e) {
 			_ = os.Rename(oldPath, newName)
 		}
@@ -413,6 +415,7 @@ func (wh *writerHelper) doReLoadFile() {
 	if wh.target.dayAge > 0 && lastDate != wh.openDate {
 		go wh.target.cleanFiles()
 	}
+
 	path := wh.getFilePath()
 	of, er := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if er != nil {
