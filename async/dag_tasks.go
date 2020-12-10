@@ -206,6 +206,14 @@ func (th *TaskHelper) GetSubTaskRet(key string) (interface{}, error) {
 	return th.task.GetSubTaskRet(key)
 }
 
+func (th *TaskHelper) GetSubTaskSize() int {
+	return len(th.task.childrenKeyList)
+}
+
+func (th *TaskHelper) GetSubTaskNames() []string {
+	return th.task.childrenKeyList
+}
+
 func (th *TaskHelper) GetSubTaskRetForIndex(index int) (interface{}, error) {
 	if index < 0 || index >= len(th.task.childrenKeyList) {
 		return nil, nil
