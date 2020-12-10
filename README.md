@@ -1,5 +1,5 @@
 # go-lib-utils
-https://img.shields.io/badge/Release-Ver1.0.0-blue.svg
+
 <hr/>
 
 这是封装的go语言utils工具类，目的是为了自己使用和协会成员使用，
