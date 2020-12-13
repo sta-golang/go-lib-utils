@@ -33,16 +33,16 @@ func (bt *BinaryTree) Put(key Comparable, data interface{}) interface{} {
 	return bt.put(bt.root, key, data)
 }
 
-func (bt *BinaryTree) put(node *binaryTreeNode, key Comparable, data interface{}) interface{} {
+func (bt *BinaryTree) put(node *binaryTreeNode, key Comparable, data interface{}) *binaryTreeNode {
 	return nil
 }
 
-func (bt *BinaryTree) Insert(key Comparable, data interface{}) bool {
-	return bt.insert(bt.root, key, data)
+func (bt *BinaryTree) Insert(key Comparable, data interface{}) {
+
 }
 
-func (bt *BinaryTree) insert(node *binaryTreeNode, key Comparable, data interface{}) bool {
-	return true
+func (bt *BinaryTree) insert(node *binaryTreeNode, key Comparable, data interface{}) *binaryTreeNode {
+	return nil
 }
 
 // Get ...
@@ -56,6 +56,10 @@ func (bt *BinaryTree) get(node *binaryTreeNode, key Comparable) interface{} {
 }
 
 func (bt *BinaryTree) Delete(key Comparable) interface{} {
+	return nil
+}
+
+func (bt *BinaryTree) delete(key Comparable) *binaryTreeNode {
 	return nil
 }
 
