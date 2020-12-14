@@ -1,4 +1,4 @@
-module github.com/xy63237777/go-lib-utils
+module github.com/sta-golang/go-lib-utils
 
 go 1.14
 

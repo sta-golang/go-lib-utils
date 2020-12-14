@@ -1,8 +1,8 @@
 package memory
 
 import (
-	"github.com/xy63237777/go-lib-utils/cache"
-	"github.com/xy63237777/go-lib-utils/str"
+	"github.com/sta-golang/go-lib-utils/cache"
+	"github.com/sta-golang/go-lib-utils/str"
 	"hash/crc32"
 	"sync"
 	"sync/atomic"

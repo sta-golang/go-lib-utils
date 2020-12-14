@@ -2,7 +2,7 @@ package log
 
 import (
 	"fmt"
-	tm "github.com/xy63237777/go-lib-utils/time"
+	tm "github.com/sta-golang/go-lib-utils/time"
 	"io"
 	"os"
 	"runtime"

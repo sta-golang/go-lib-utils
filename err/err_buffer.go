@@ -5,8 +5,8 @@ package err
 
 import (
 	"fmt"
-	"github.com/xy63237777/go-lib-utils/algorithm/data_structure"
-	"github.com/xy63237777/go-lib-utils/time"
+	"github.com/sta-golang/go-lib-utils/algorithm/data_structure"
+	"github.com/sta-golang/go-lib-utils/time"
 	"strings"
 	"sync"
 )

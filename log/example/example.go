@@ -1,8 +1,8 @@
 package example
 
 import (
-	"github.com/xy63237777/go-lib-utils/log"
-	"github.com/xy63237777/go-lib-utils/source"
+	"github.com/sta-golang/go-lib-utils/log"
+	"github.com/sta-golang/go-lib-utils/source"
 	"time"
 )
 

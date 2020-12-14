@@ -3,7 +3,7 @@ package codec
 import (
 	"crypto/md5"
 	"encoding/hex"
-	str "github.com/xy63237777/go-lib-utils/str"
+	str "github.com/sta-golang/go-lib-utils/str"
 	"strings"
 )
 

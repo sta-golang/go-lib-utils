@@ -1,8 +1,8 @@
 package os_windows
 
 import (
-	si "github.com/xy63237777/go-lib-utils/os/system_info"
-	tm "github.com/xy63237777/go-lib-utils/time"
+	si "github.com/sta-golang/go-lib-utils/os/system_info"
+	tm "github.com/sta-golang/go-lib-utils/time"
 	"os"
 	"runtime"
 	"syscall"

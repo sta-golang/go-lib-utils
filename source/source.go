@@ -1,6 +1,6 @@
 package source
 
-import "github.com/xy63237777/go-lib-utils/log"
+import "github.com/sta-golang/go-lib-utils/log"
 
 type Source interface {
 	Sync() error
