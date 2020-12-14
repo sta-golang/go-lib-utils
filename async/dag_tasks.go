@@ -29,6 +29,7 @@ func init() {
 }
 
 type DagTasks struct {
+	wg sync.WaitGroup
 	root *task
 }
 
@@ -62,7 +63,10 @@ func NewTask(name string, fn func(ctx context.Context, helper TaskHelper) (inter
 }
 
 func NewDag(root *task) DagTasks {
-	return DagTasks{root: root}
+	return DagTasks{
+		wg:   sync.WaitGroup{},
+		root: root,
+	}
 }
 
 func (tk *task) AddSubTask(subT *task) {
@@ -120,6 +124,7 @@ func (tk *task) String() string {
 }
 
 func (dt *DagTasks) Do(ctx context.Context, checkDependence bool) (hasDependence bool) {
+	// 检查是否存在互相依赖关系
 	if checkDependence {
 		if dt.checkDependenceForDfs() {
 			return true
@@ -137,8 +142,10 @@ func (dt *DagTasks) Do(ctx context.Context, checkDependence bool) (hasDependence
 			log.Errorf("panic:%v", string(debug.Stack()))
 		}
 	}()
+	dt.wg.Add(1)
 	go dt.startRun(runCh)
-	dt.doExec(ctx, runCh)
+	go dt.doExec(ctx, runCh)
+	dt.wg.Wait()
 	close(runCh)
 	return
 }
@@ -163,6 +170,7 @@ func (dt *DagTasks) doStartRun(tk *task, runCh chan *task) {
 // doExec 执行任务
 func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 
+	defer dt.wg.Done()
 	for {
 		tempTk := <-runChan
 		if tempTk == endTask {

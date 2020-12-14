@@ -22,6 +22,7 @@ func TestDagTasks_AddRootTasks(t *testing.T) {
 		// 做一个归并
 		fmt.Println(arr1)
 		fmt.Println(arr2)
+		fmt.Println("-----------------------------------------------")
 		fmt.Println(helper.GetSubTaskRetForIndex(0))
 		fmt.Println(helper.GetSubTaskRetForIndex(1))
 		fmt.Println(helper.GetSubTaskRetForIndex(2))
@@ -39,11 +40,11 @@ func TestDagTasks_AddRootTasks(t *testing.T) {
 	})
 
 	sub11 := NewTask("sub-1-1", func(ctx context.Context, helper TaskHelper) (interface{}, error) {
-		return []int{1, 3, 4, 5, 1, 2, 3, 4, 5, 7}, nil
+		return []int{1,3,5,7}, nil
 	})
 
 	sub12 := NewTask("sub-1-2", func(ctx context.Context, helper TaskHelper) (interface{}, error) {
-		return []int{5, 1, 2, 3, 4, 5, 6, 7, 9}, nil
+		return []int{6,4,2,8}, nil
 	})
 
 	num2 := []int{9, 7, 8, 6, 5, 4, 3, 2, 1}

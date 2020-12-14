@@ -21,6 +21,8 @@ func NewQueue() *Queue {
 	}
 }
 
+
+
 func NewQueueWithSize(size int) *Queue {
 	if size <= 0 {
 		size = 16
