@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/xy63237777/go-lib-utils/log"
-	"github.com/xy63237777/go-lib-utils/os/os_windows"
-	"github.com/xy63237777/go-lib-utils/source"
+	"github.com/sta-golang/go-lib-utils/log"
+	"github.com/sta-golang/go-lib-utils/os/os_windows"
+	"github.com/sta-golang/go-lib-utils/source"
 	"time"
 )
 
