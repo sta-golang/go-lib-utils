@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/sta-golang/go-lib-utils/log"
-	"github.com/sta-golang/go-lib-utils/os/os_windows"
+	"github.com/sta-golang/go-lib-utils/os/system_info"
+
 	"runtime"
 	"time"
 )
@@ -11,7 +12,7 @@ import (
 func main() {
 	ReCreate()
 	if runtime.GOOS != "windows" {
-		os_windows.GetWindowsSystemInfo()
+		fmt.Println(system_info.GetSystemInfo())
 	}
 	time.Sleep(time.Second * 50)
 	//var aStr *string

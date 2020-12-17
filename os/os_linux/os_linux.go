@@ -1,3 +1,5 @@
+//+build !windows
+
 package os_linux
 
 import (
@@ -53,7 +55,6 @@ func DiskUsageForLinux(path string) (used, free, total uint64) {
 	err := syscall.Statfs(path, fs)
 
 	if err == nil {
-
 		total = fs.Blocks * uint64(fs.Bsize)
 		free = fs.Bfree * uint64(fs.Bsize)
 		used = total - free
