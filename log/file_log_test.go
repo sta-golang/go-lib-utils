@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -12,12 +13,14 @@ func BenchmarkFileLogAs(b *testing.B) {
 	//now := time.Now()
 	log := NewFileLogAndAsync(DefaultFileLogConfigForAloneWriter(
 		[]string{GetLevelName(INFO), GetLevelName(WARNING), GetLevelName(ERROR)}), time.Second*3)
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for ; i < b.N; i++ {
 		log.Info("hello", "world", "golang")
 		log.Warn("hello", "world", "golang")
 		log.Error("hello", "world", "golang")
 
 	}
+	fmt.Println(i)
 	//fmt.Println(time.Now().Sub(now).Milliseconds())
 }
 
@@ -96,4 +99,12 @@ func BenchmarkConsoleLog(b *testing.B) {
 			log.Error("hello", "world", "golang")
 		}
 	}
+}
+
+func TestFileLogRe(t *testing.T) {
+	log := NewFileLogAndAsync(DefaultFileLogConfigForAloneWriter(
+		[]string{GetLevelName(INFO), GetLevelName(WARNING), GetLevelName(ERROR)}), time.Second*3)
+	log.Warn("hello")
+	log.Warn("hello")
+	time.Sleep(time.Second * 10)
 }

@@ -4,26 +4,42 @@ import (
 	"fmt"
 	"github.com/sta-golang/go-lib-utils/log"
 	"github.com/sta-golang/go-lib-utils/os/os_windows"
-	"github.com/sta-golang/go-lib-utils/source"
+	"runtime"
 	"time"
 )
 
 func main() {
-
-	defer func() {
-		if er := recover(); er != nil {
-			source.Sync()
-			panic(er)
-		}
-	}()
-	log.Info(os_windows.GetWindowsSystemInfo())
-	log.Error("hello")
-	c := cat{
-		name: "12312",
-		age:  0,
+	ReCreate()
+	if runtime.GOOS != "windows" {
+		os_windows.GetWindowsSystemInfo()
 	}
-	hello(&c)
-	time.Sleep(time.Second * 120)
+	time.Sleep(time.Second * 50)
+	//var aStr *string
+	//
+	//target := "world"
+	//atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&aStr)), unsafe.Pointer(&target))
+	//fmt.Println(*aStr)
+	//fmt.Println(target[:len(target)])
+	//defer func() {
+	//	if er := recover(); er != nil {
+	//		source.Sync()
+	//		panic(er)
+	//	}
+	//}()
+	//log.Info(os_windows.GetWindowsSystemInfo())
+	//log.Error("hello")
+	//c := cat{
+	//	name: "12312",
+	//	age:  0,
+	//}
+	//hello(&c)
+	//time.Sleep(time.Second * 120)
+}
+
+func ReCreate() {
+	lg := log.NewFileLogAndAsync(log.DefaultFileLogConfigForAloneWriter(
+		[]string{log.GetLevelName(log.INFO), log.GetLevelName(log.WARNING), log.GetLevelName(log.ERROR)}), time.Second*3)
+	lg.Warn("hello")
 }
 
 func hello(t A) {

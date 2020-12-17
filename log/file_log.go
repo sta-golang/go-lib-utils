@@ -28,6 +28,13 @@ const (
 )
 
 var syncFlag = &asyncNode{}
+var reSizeFlag = true
+
+func init() {
+	if runtime.GOOS == "windows" {
+		reSizeFlag = false
+	}
+}
 
 type fileLog struct {
 	writerHelper *fileLogWriter
@@ -368,7 +375,7 @@ func (wh *writerHelper) doWriter(data []byte) *err.Error {
 	if er != nil {
 		return err.NewError(err.LogErrCode+FileWriterError, fmt.Errorf("writer err %v", er))
 	}
-	if wh.target.maxSize > 0 && atomic.LoadInt64(&wh.writerSize) > wh.target.maxSize {
+	if reSizeFlag && wh.target.maxSize > 0 && atomic.LoadInt64(&wh.writerSize) > wh.target.maxSize {
 		wh.lock.Lock()
 		wh.reCreateFile()
 		wh.lock.Unlock()

@@ -2,8 +2,7 @@ package os_windows
 
 import (
 	si "github.com/sta-golang/go-lib-utils/os/system_info"
-	tm "github.com/sta-golang/go-lib-utils/time"
-	"os"
+	"github.com/sta-golang/go-lib-utils/server"
 	"runtime"
 	"syscall"
 	"unsafe"
@@ -152,13 +151,13 @@ func GetWindowsSystemInfo() *si.SystemInfo {
 	//内存使用信息
 	memUsed, memFree, memTotal := MemoryUsageForWindows()
 
-	serverName, _ := os.Hostname()
+	serverName := server.ServerName
 
 	return &si.SystemInfo{
 		ServerName: serverName,
 		SystemOs:   runtime.GOOS,
 
-		Runtime:      int64(tm.ServiceUptime()),
+		Runtime:      int64(server.ServiceUptime()),
 		GoroutineNum: runtime.NumGoroutine(),
 		CPUNum:       runtime.NumCPU(),
 		CPUUser:      cpuUserRate,

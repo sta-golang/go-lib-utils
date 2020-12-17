@@ -36,3 +36,8 @@ func IsDirExists(path string) bool {
 		return fi.IsDir() //err==nil,说明文件或文件夹存在
 	}
 }
+
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}
