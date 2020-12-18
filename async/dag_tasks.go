@@ -8,16 +8,18 @@ import (
 	"runtime"
 	"runtime/debug"
 	"sync"
+	"sync/atomic"
 )
 
 // TaskState 任务的执行状态
-type TaskState int
+type TaskState int32
 
 // const 任务执行状态枚举值，0为执行，1执行中，2执行完成
 const (
 	TaskInit    TaskState = 0
-	TaskRunning TaskState = 1
-	TaskFinish  TaskState = 2
+	TaskReady   TaskState = 1
+	TaskRunning TaskState = 2
+	TaskFinish  TaskState = 3
 )
 
 var (
@@ -29,7 +31,7 @@ func init() {
 }
 
 type DagTasks struct {
-	wg sync.WaitGroup
+	wg   sync.WaitGroup
 	root *task
 }
 
@@ -39,9 +41,8 @@ type task struct {
 	retVal          interface{}
 	retErr          error
 	state           TaskState
-	finishCnt       int
+	finishCnt       int32
 	parents         map[*task]bool
-	lock            sync.Mutex
 	childrenTasks   map[string]*task
 	childrenKeyList []string
 }
@@ -160,6 +161,7 @@ func (dt *DagTasks) doStartRun(tk *task, runCh chan *task) {
 	}
 	for _, temp := range tk.childrenTasks {
 		if len(temp.childrenTasks) == 0 {
+			temp.Ready()
 			runCh <- temp
 			continue
 		}
@@ -176,12 +178,16 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 		if tempTk == endTask {
 			return
 		}
+		if !tempTk.IsReady() {
+			continue
+		}
 		go func(tk *task) {
 			defer func() {
 				if e := recover(); e != nil {
 					log.Errorf("panic:%v", string(debug.Stack()))
 				}
 			}()
+			tk.Running()
 			if tk.retErr == nil {
 				tk.retVal, tk.retErr = tk.fn(ctx, TaskHelper{task: tk})
 			}
@@ -194,12 +200,13 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 				return
 			}
 			for parent := range tk.parents {
-				parent.lock.Lock()
-				parent.finishCnt++
-				if parent.finishCnt == len(parent.childrenTasks) {
+				if !parent.IsInit() {
+					continue
+				}
+				atomic.AddInt32(&parent.finishCnt, 1)
+				if int(atomic.LoadInt32(&parent.finishCnt)) == len(parent.childrenTasks) && parent.casSetStatus(TaskInit, TaskReady) {
 					runChan <- parent
 				}
-				parent.lock.Unlock()
 			}
 
 		}(tempTk)
@@ -236,12 +243,24 @@ func (tk *task) GetRet() (interface{}, error) {
 	return tk.retVal, tk.retErr
 }
 
+func (tk *task) casSetStatus(old, new TaskState) bool {
+	return atomic.CompareAndSwapInt32((*int32)(&tk.state), int32(old), int32(new))
+}
+
 // Init init状态设置
 func (tk *task) Init() {
 	if tk.state == TaskInit {
 		return
 	}
 	tk.state = TaskInit
+}
+
+// Ready Ready状态设置
+func (tk *task) Ready() {
+	if tk.state == TaskReady {
+		return
+	}
+	tk.state = TaskReady
 }
 
 // Running running状态设置
@@ -263,6 +282,11 @@ func (tk *task) Finish() {
 // IsInit 是否为初始化状态
 func (tk *task) IsInit() bool {
 	return tk.state == TaskInit
+}
+
+// IsReady 是否为就绪态
+func (tk *task) IsReady() bool {
+	return tk.state == TaskReady
 }
 
 // IsRunning 是否为运行中状态

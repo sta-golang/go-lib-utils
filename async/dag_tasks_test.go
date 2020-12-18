@@ -40,11 +40,11 @@ func TestDagTasks_AddRootTasks(t *testing.T) {
 	})
 
 	sub11 := NewTask("sub-1-1", func(ctx context.Context, helper TaskHelper) (interface{}, error) {
-		return []int{1,3,5,7}, nil
+		return []int{1, 3, 5, 7}, nil
 	})
 
 	sub12 := NewTask("sub-1-2", func(ctx context.Context, helper TaskHelper) (interface{}, error) {
-		return []int{6,4,2,8}, nil
+		return []int{6, 4, 2, 8}, nil
 	})
 
 	num2 := []int{9, 7, 8, 6, 5, 4, 3, 2, 1}
@@ -59,4 +59,11 @@ func TestDagTasks_AddRootTasks(t *testing.T) {
 	//sub1.AddSubTask(root)
 	dag := NewDag(root)
 	fmt.Println(dag.Do(context.Background(), false))
+}
+
+func TestCAS(t *testing.T) {
+	tk := &task{}
+	fmt.Println(tk.state)
+	fmt.Println(tk.casSetStatus(tk.state, TaskFinish))
+	fmt.Println(tk.state)
 }
