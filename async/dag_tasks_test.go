@@ -44,6 +44,7 @@ func TestDagTasks_AddRootTasks(t *testing.T) {
 	})
 
 	sub12 := NewTask("sub-1-2", func(ctx context.Context, helper TaskHelper) (interface{}, error) {
+
 		return []int{6, 4, 2, 8}, nil
 	})
 

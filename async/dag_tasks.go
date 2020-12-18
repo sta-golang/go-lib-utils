@@ -3,6 +3,7 @@ package async
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/sta-golang/go-lib-utils/log"
 	"runtime"
@@ -13,6 +14,7 @@ import (
 
 // TaskState 任务的执行状态
 type TaskState int32
+type DagState int32
 
 // const 任务执行状态枚举值，0为执行，1执行中，2执行完成
 const (
@@ -20,6 +22,11 @@ const (
 	TaskReady   TaskState = 1
 	TaskRunning TaskState = 2
 	TaskFinish  TaskState = 3
+
+	DagInit    DagState = 0
+	DagReady   DagState = 1
+	DagRunning DagState = 2
+	DagFinish  DagState = 3
 )
 
 var (
@@ -31,8 +38,9 @@ func init() {
 }
 
 type DagTasks struct {
-	wg   sync.WaitGroup
-	root *task
+	state DagState
+	wg    sync.WaitGroup
+	root  *task
 }
 
 type task struct {
@@ -65,8 +73,9 @@ func NewTask(name string, fn func(ctx context.Context, helper TaskHelper) (inter
 
 func NewDag(root *task) DagTasks {
 	return DagTasks{
-		wg:   sync.WaitGroup{},
-		root: root,
+		wg:    sync.WaitGroup{},
+		root:  root,
+		state: DagInit,
 	}
 }
 
@@ -149,6 +158,21 @@ func (dt *DagTasks) Do(ctx context.Context, checkDependence bool) (hasDependence
 	dt.wg.Wait()
 	close(runCh)
 	return
+}
+
+// GetRootTask 获取根节点任务
+func (dt *DagTasks) GetRootTask() *task {
+	return dt.root
+}
+
+// ChangeRootTask 改变根节点任务
+func (dt *DagTasks) ChangeRootTask(root *task) error {
+	if dt.IsReady() || dt.IsRunning() {
+		return errors.New("task is running or ready")
+	}
+	dt.root = root
+	dt.IsInit()
+	return nil
 }
 
 func (dt *DagTasks) startRun(runCh chan *task) {
@@ -243,6 +267,59 @@ func (tk *task) GetRet() (interface{}, error) {
 	return tk.retVal, tk.retErr
 }
 
+// Init init状态设置
+func (dt *DagTasks) Init() {
+	if dt.state == DagInit {
+		return
+	}
+	dt.state = DagInit
+}
+
+// Ready ready状态设置
+func (dt *DagTasks) Ready() {
+	if dt.state == DagReady {
+		return
+	}
+	dt.state = DagReady
+}
+
+// Running running状态设置
+func (dt *DagTasks) Running() {
+	if dt.state == DagRunning {
+		return
+	}
+	dt.state = DagRunning
+}
+
+// Finish finish状态设置
+func (dt *DagTasks) Finish() {
+	if dt.state == DagFinish {
+		return
+	}
+	dt.state = DagFinish
+}
+
+// IsInit 是否为初始化状态
+func (dt *DagTasks) IsInit() bool {
+	return dt.state == DagInit
+}
+
+// IsReady 是否为就绪态
+func (dt *DagTasks) IsReady() bool {
+	return dt.state == DagReady
+}
+
+// IsRunning 是否为运行中状态
+func (dt *DagTasks) IsRunning() bool {
+	return dt.state == DagRunning
+}
+
+// IsFinish 是否为运行完成状态
+func (dt *DagTasks) IsFinish() bool {
+	return dt.state == DagFinish
+}
+
+// casSetStatus cas设置状态
 func (tk *task) casSetStatus(old, new TaskState) bool {
 	return atomic.CompareAndSwapInt32((*int32)(&tk.state), int32(old), int32(new))
 }
