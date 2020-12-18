@@ -11,7 +11,7 @@ import (
 
 func main() {
 	ReCreate()
-	if runtime.GOOS != "windows" {
+	if runtime.GOOS == "windows" {
 		fmt.Println(system_info.GetSystemInfo())
 	}
 	time.Sleep(time.Second * 50)

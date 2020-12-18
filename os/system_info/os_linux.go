@@ -1,9 +1,8 @@
 //+build !windows
 
-package os_linux
+package system_info
 
 import (
-	si "github.com/sta-golang/go-lib-utils/os/system_info"
 	"github.com/sta-golang/go-lib-utils/server"
 	"io/ioutil"
 	"runtime"
@@ -17,7 +16,7 @@ import (
 // user为用户态(用户进程)的运行时间,
 // idle为空闲时间,
 // total为累计时间.
-func CPUUsageForLinux() (user, idle, total uint64) {
+func CPUUsage() (user, idle, total uint64) {
 	contents, _ := ioutil.ReadFile("/proc/stat")
 
 	if len(contents) > 0 {
@@ -50,7 +49,7 @@ func CPUUsageForLinux() (user, idle, total uint64) {
 // used为已用,
 // free为空闲,
 // total为总数.
-func DiskUsageForLinux(path string) (used, free, total uint64) {
+func DiskUsage(path string) (used, free, total uint64) {
 	fs := &syscall.Statfs_t{}
 	err := syscall.Statfs(path, fs)
 
@@ -68,7 +67,7 @@ func DiskUsageForLinux(path string) (used, free, total uint64) {
 // used为已用,
 // free为空闲,
 // total为总数.
-func MemoryUsageForLinux(virtual bool) (used, free, total uint64) {
+func MemoryUsage(virtual bool) (used, free, total uint64) {
 	if virtual {
 		// 虚拟机的内存
 		contents, err := ioutil.ReadFile("/proc/meminfo")
@@ -106,23 +105,23 @@ func MemoryUsageForLinux(virtual bool) (used, free, total uint64) {
 }
 
 // GetLinuxSystemInfo 获取系统运行信息.
-func GetLinuxSystemInfo() *si.SystemInfo {
+func GetLinuxSystemInfo() *SystemInfo {
 	//运行时信息
 	mStat := &runtime.MemStats{}
 	runtime.ReadMemStats(mStat)
 
 	//CPU信息
-	cpuUser, cpuIdel, cpuTotal := CPUUsageForLinux()
+	cpuUser, cpuIdel, cpuTotal := CPUUsage()
 	cpuUserRate := float64(cpuUser) / float64(cpuTotal)
 	cpuFreeRate := float64(cpuIdel) / float64(cpuTotal)
 
 	//磁盘空间信息
-	diskUsed, diskFree, diskTotal := DiskUsageForLinux("/")
-	di := si.DiskInfo{
+	diskUsed, diskFree, diskTotal := DiskUsage("/")
+	di := DiskInfo{
 		DiskUsed:  diskUsed,
 		DiskFree:  diskFree,
 		DiskTotal: diskTotal,
-		Children: []si.ChildrenInfo{
+		Children: []ChildrenInfo{
 			{
 				Path:      "/",
 				DiskUsed:  diskUsed,
@@ -132,11 +131,11 @@ func GetLinuxSystemInfo() *si.SystemInfo {
 		},
 	}
 	//内存使用信息
-	memUsed, memFree, memTotal := MemoryUsageForLinux(true)
+	memUsed, memFree, memTotal := MemoryUsage(true)
 
 	serverName := server.ServerName
 
-	return &si.SystemInfo{
+	return &SystemInfo{
 		ServerName: serverName,
 		SystemOs:   runtime.GOOS,
 
