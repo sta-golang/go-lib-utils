@@ -135,7 +135,7 @@ func (wp *workerPool) ReadyQueueLength() int {
 
 func (wp *workerPool) doWorker() bool {
 	if wp.workerIdleTime > 0 {
-		idle := time.Tick(wp.workerIdleTime)
+		idle := time.NewTimer(wp.workerIdleTime)
 		for atomic.LoadInt32((*int32)(&wp.status)) != int32(StatusClose) {
 			select {
 			case task, ok := <-wp.workerQueue:
@@ -143,7 +143,8 @@ func (wp *workerPool) doWorker() bool {
 					break
 				}
 				(*task)()
-			case <-idle:
+				idle.Reset(wp.workerIdleTime)
+			case <-idle.C:
 				if atomic.LoadInt32((*int32)(&wp.status)) <= wp.maxWorkers-1 &&
 					atomic.CompareAndSwapInt32((*int32)(&wp.status), int32(StatusStable), int32(StatusDispatchRunning)) {
 
@@ -177,6 +178,15 @@ func (wp *workerPool) StopWait() {
 	for atomic.LoadInt32(&wp.currentWorkers) > 0 {
 		time.Sleep(time.Millisecond * 100)
 	}
+	atomic.StoreInt32((*int32)(&wp.status), int32(StatusClose))
+}
+
+func (wp *workerPool) Stopped() bool {
+	return atomic.LoadInt32((*int32)(&wp.status)) == int32(StatusClose)
+}
+
+func (wp *workerPool) Status() Status {
+	return Status(atomic.LoadInt32((*int32)(&wp.status)))
 }
 
 func (wp *workerPool) StopGetTasks() []func() {
