@@ -3,18 +3,52 @@ package main
 import (
 	"fmt"
 	"github.com/sta-golang/go-lib-utils/log"
-	"github.com/sta-golang/go-lib-utils/os/system_info"
-
-	"runtime"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
-func main() {
-	ReCreate()
-	if runtime.GOOS == "windows" {
-		fmt.Println(system_info.GetSystemInfo())
+func TestTag() {
+	i := 0
+
+	i++
+MYLoop:
+	for ; i < 10; i++ {
+		if i == 5 {
+			break MYLoop
+		}
 	}
-	time.Sleep(time.Second * 50)
+	fmt.Println(i)
+}
+
+func main() {
+	wg := sync.WaitGroup{}
+	start := sync.WaitGroup{}
+	ready := sync.WaitGroup{}
+	var cnt int32
+	cnt = 0
+	start.Add(1)
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		ready.Add(1)
+		go func() {
+			defer wg.Done()
+			ready.Done()
+			start.Wait()
+			for j := 0; j < 10000; j++ {
+				atomic.AddInt32(&cnt, 1)
+			}
+		}()
+	}
+	ready.Wait()
+	start.Done()
+	wg.Wait()
+	fmt.Println(cnt)
+	//ReCreate()
+	//if runtime.GOOS == "windows" {
+	//	fmt.Println(system_info.GetSystemInfo())
+	//}
+	//time.Sleep(time.Second * 50)
 	//var aStr *string
 	//
 	//target := "world"
