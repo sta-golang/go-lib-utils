@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sta-golang/go-lib-utils/log"
+	"github.com/sta-golang/go-lib-utils/pool/workerpool"
 	"runtime"
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 // TaskState 任务的执行状态
@@ -27,6 +29,8 @@ const (
 	DagReady   DagState = 1
 	DagRunning DagState = 2
 	DagFinish  DagState = 3
+
+	maxRetry = 3
 )
 
 var (
@@ -38,9 +42,10 @@ func init() {
 }
 
 type DagTasks struct {
-	state DagState
-	wg    sync.WaitGroup
-	root  *task
+	state      DagState
+	wg         sync.WaitGroup
+	workerPool *workerpool.WorkerPool
+	root       *task
 }
 
 type task struct {
@@ -205,7 +210,8 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 		if !tempTk.IsReady() {
 			continue
 		}
-		go func(tk *task) {
+		var fn = func() {
+			tk := tempTk
 			defer func() {
 				if e := recover(); e != nil {
 					log.Errorf("panic:%v", string(debug.Stack()))
@@ -232,8 +238,27 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 					runChan <- parent
 				}
 			}
-
-		}(tempTk)
+		}
+		var poolErr error
+		for i := 0; i < maxRetry; i++ {
+			if dt.workerPool == nil {
+				poolErr = workerpool.Submit(fn)
+				if poolErr == nil {
+					break
+				}
+				time.Sleep(time.Millisecond * 200)
+			} else {
+				poolErr = dt.workerPool.Submit(fn)
+				if poolErr == nil {
+					break
+				}
+				time.Sleep(time.Millisecond * 200)
+			}
+		}
+		if poolErr != nil {
+			log.FrameworkLogger.Error("workerPool Err %v ", poolErr)
+			break
+		}
 	}
 }
 

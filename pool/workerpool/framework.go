@@ -6,7 +6,7 @@ import (
 )
 
 var frameOnce sync.Once
-var framePool *workerPool
+var framePool *WorkerPool
 
 func initPool() {
 	frameOnce.Do(func() {

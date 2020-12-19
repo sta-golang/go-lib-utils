@@ -25,7 +25,7 @@ const (
 var UnableToAddErr = errors.New("the queue is full and cannot be added")
 var UseClosedPoolErr = errors.New("you are using a closed pool")
 
-type workerPool struct {
+type WorkerPool struct {
 	maxWorkers           int32
 	currentWorkers       int32
 	currentRunningWorker int32
@@ -34,19 +34,19 @@ type workerPool struct {
 	workerQueue          chan *func()
 }
 
-func New(maxWorkers int) *workerPool {
+func New(maxWorkers int) *WorkerPool {
 	return newPool(maxWorkers, DefQueueSize, DefWorkerIdleTime)
 }
 
-func NewWithQueueSize(maxWorkers, queueSize int) *workerPool {
+func NewWithQueueSize(maxWorkers, queueSize int) *WorkerPool {
 	return newPool(maxWorkers, queueSize, DefWorkerIdleTime)
 }
 
-func NewWithQueueSizeAndIdleTime(maxWorkers, queueSize int, idle time.Duration) *workerPool {
+func NewWithQueueSizeAndIdleTime(maxWorkers, queueSize int, idle time.Duration) *WorkerPool {
 	return newPool(maxWorkers, queueSize, idle)
 }
 
-func newPool(maxWorkers, queueSize int, idle time.Duration) *workerPool {
+func newPool(maxWorkers, queueSize int, idle time.Duration) *WorkerPool {
 	if maxWorkers < 1 {
 		maxWorkers = 1
 	}
@@ -59,7 +59,7 @@ func newPool(maxWorkers, queueSize int, idle time.Duration) *workerPool {
 	if queueSize > MaxQueueSize {
 		queueSize = MaxQueueSize
 	}
-	pool := &workerPool{
+	pool := &WorkerPool{
 		maxWorkers:     int32(maxWorkers),
 		currentWorkers: 0,
 		workerIdleTime: idle,
@@ -70,7 +70,7 @@ func newPool(maxWorkers, queueSize int, idle time.Duration) *workerPool {
 	return pool
 }
 
-func (wp *workerPool) Submit(task func()) error {
+func (wp *WorkerPool) Submit(task func()) error {
 	if task == nil {
 		return nil
 	}
@@ -85,7 +85,7 @@ func (wp *workerPool) Submit(task func()) error {
 	return nil
 }
 
-func (wp *workerPool) SubmitWait(task func()) error {
+func (wp *WorkerPool) SubmitWait(task func()) error {
 	if task == nil {
 		return nil
 	}
@@ -106,7 +106,7 @@ func (wp *workerPool) SubmitWait(task func()) error {
 	return nil
 }
 
-func (wp *workerPool) dispatch() {
+func (wp *WorkerPool) dispatch() {
 LOOP:
 	for atomic.LoadInt32((*int32)(&wp.status)) == int32(StatusDispatchRunning) &&
 		atomic.LoadInt32(&wp.currentWorkers) < wp.maxWorkers {
@@ -121,7 +121,7 @@ LOOP:
 	}
 }
 
-func (wp *workerPool) worker(tk *func()) {
+func (wp *WorkerPool) worker(tk *func()) {
 	(*tk)()
 	if wp.doWorker() {
 		atomic.AddInt32(&wp.currentWorkers, -1)
@@ -129,11 +129,11 @@ func (wp *workerPool) worker(tk *func()) {
 }
 
 // ReadyQueueLength 获取Queue的长度 此方法并不是线程安全的。
-func (wp *workerPool) ReadyQueueLength() int {
+func (wp *WorkerPool) ReadyQueueLength() int {
 	return len(wp.workerQueue)
 }
 
-func (wp *workerPool) doWorker() bool {
+func (wp *WorkerPool) doWorker() bool {
 	if wp.workerIdleTime > 0 {
 		idle := time.NewTimer(wp.workerIdleTime)
 		for atomic.LoadInt32((*int32)(&wp.status)) != int32(StatusClose) {
@@ -167,11 +167,11 @@ func (wp *workerPool) doWorker() bool {
 	return true
 }
 
-func (wp *workerPool) Stop() {
+func (wp *WorkerPool) Stop() {
 	_ = wp.stop(StatusClose)
 }
 
-func (wp *workerPool) StopWait() {
+func (wp *WorkerPool) StopWait() {
 	if !wp.stop(StatusCloseWait) {
 		return
 	}
@@ -181,15 +181,15 @@ func (wp *workerPool) StopWait() {
 	atomic.StoreInt32((*int32)(&wp.status), int32(StatusClose))
 }
 
-func (wp *workerPool) Stopped() bool {
+func (wp *WorkerPool) Stopped() bool {
 	return atomic.LoadInt32((*int32)(&wp.status)) == int32(StatusClose)
 }
 
-func (wp *workerPool) Status() Status {
+func (wp *WorkerPool) Status() Status {
 	return Status(atomic.LoadInt32((*int32)(&wp.status)))
 }
 
-func (wp *workerPool) StopGetTasks() []func() {
+func (wp *WorkerPool) StopGetTasks() []func() {
 	wp.stop(StatusClose)
 	tasks := make([]func(), 0, wp.ReadyQueueLength())
 	for task := range wp.workerQueue {
@@ -198,7 +198,7 @@ func (wp *workerPool) StopGetTasks() []func() {
 	return tasks
 }
 
-func (wp *workerPool) stop(status Status) bool {
+func (wp *WorkerPool) stop(status Status) bool {
 	if atomic.LoadInt32((*int32)(&wp.status)) == int32(StatusClose) || atomic.LoadInt32((*int32)(&wp.status)) == int32(StatusClose) {
 		return false
 	}
