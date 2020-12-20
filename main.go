@@ -25,6 +25,7 @@ func main() {
 	wg := sync.WaitGroup{}
 	start := sync.WaitGroup{}
 	ready := sync.WaitGroup{}
+
 	var cnt int32
 	cnt = 0
 	start.Add(1)
