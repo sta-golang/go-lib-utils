@@ -6,6 +6,23 @@
 
 <hr/>
 
+## 快速开始
+
+```go
+go get -u https://github.com/sta-golang/go-lib-utils
+```
+
+然后导入相应的组件使用
+```go
+import github.com/sta-golang/go-lib-utils/log
+
+
+func main() {
+	log.Info("hello golang")
+}
+```
+
+
 ## 作者信息
 毕业于XUPT 软件科技协会实验室成员
 
