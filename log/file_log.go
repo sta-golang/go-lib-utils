@@ -25,6 +25,9 @@ const (
 	defFileDir     = "./log"
 	minFileSize    = 10 * mb
 	fileLogName    = "sta:file_log"
+
+	syncFlagInit    = 0
+	syncFlagProcess = 1
 )
 
 var syncFlag = &asyncNode{}
@@ -41,6 +44,7 @@ type fileLog struct {
 	asyncWriter  *asyncHelper
 	level        Level
 	prefix       string
+	syncFlag     int32
 	skip         int
 }
 
@@ -61,6 +65,10 @@ func (fl *fileLog) Name() string {
 
 func (fl *fileLog) Sync() error {
 	fl.asyncWriter.ch <- syncFlag
+	for atomic.LoadInt32(&fl.syncFlag) != syncFlagProcess {
+		time.Sleep(time.Millisecond * 50)
+	}
+	atomic.StoreInt32(&fl.syncFlag, syncFlagInit)
 	return nil
 }
 
@@ -532,6 +540,7 @@ func (ah *asyncHelper) worker() {
 		case ele := <-ah.ch:
 			if ele == syncFlag {
 				syncDoWriter()
+				atomic.StoreInt32(&ah.target.syncFlag, syncFlagProcess)
 			} else {
 				_, _ = buffers[ele.level].Write(ele.bys)
 				if buffers[ele.level].Len() > (1024<<2)-512 {
