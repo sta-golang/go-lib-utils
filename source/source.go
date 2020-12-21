@@ -1,6 +1,6 @@
 package source
 
-import "github.com/sta-golang/go-lib-utils/log"
+import "log"
 
 type Source interface {
 	Sync() error
@@ -14,12 +14,12 @@ func Monitoring(source Source) {
 }
 
 func Sync() {
-	log.FrameworkLogger.Infof("%d sources has sync", len(monitor))
+	log.Printf("%d sources has sync\n", len(monitor))
 	for _, source := range monitor {
 		if source != nil {
 			er := source.Sync()
 			if er != nil {
-				log.FrameworkLogger.Warnf("source : %s sync has err : %v", source.Name(), source.Sync())
+				log.Printf("source : %s sync has err : %v\n", source.Name(), er)
 			}
 		}
 	}
