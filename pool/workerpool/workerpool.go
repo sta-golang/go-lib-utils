@@ -34,18 +34,22 @@ type WorkerPool struct {
 	workerQueue          chan *func()
 }
 
+// New 构造方法
 func New(maxWorkers int) *WorkerPool {
 	return newPool(maxWorkers, DefQueueSize, DefWorkerIdleTime)
 }
 
+// NewWithQueueSize 构造方法
 func NewWithQueueSize(maxWorkers, queueSize int) *WorkerPool {
 	return newPool(maxWorkers, queueSize, DefWorkerIdleTime)
 }
 
+// NewWithQueueSizeAndIdleTime 构造方法
 func NewWithQueueSizeAndIdleTime(maxWorkers, queueSize int, idle time.Duration) *WorkerPool {
 	return newPool(maxWorkers, queueSize, idle)
 }
 
+// newPool 正式构造
 func newPool(maxWorkers, queueSize int, idle time.Duration) *WorkerPool {
 	if maxWorkers < 1 {
 		maxWorkers = 1
@@ -66,17 +70,22 @@ func newPool(maxWorkers, queueSize int, idle time.Duration) *WorkerPool {
 		status:         StatusDispatchRunning,
 		workerQueue:    make(chan *func(), queueSize),
 	}
+	//开启写成池的主循环
 	go pool.dispatch()
 	return pool
 }
 
+// Submit 提交任务
 func (wp *WorkerPool) Submit(task func()) error {
+	//如果任务为空则直接返回
 	if task == nil {
 		return nil
 	}
+	//当协程池的状态为关闭相关时，抛出异常
 	if wp.status == StatusClosePretreatment || wp.status == StatusClose || wp.status == StatusCloseWait {
 		return UseClosedPoolErr
 	}
+	//将任务放入任务队列中，准备执行
 	select {
 	case wp.workerQueue <- &task:
 	default:
@@ -85,18 +94,23 @@ func (wp *WorkerPool) Submit(task func()) error {
 	return nil
 }
 
+// SubmitWait 等待任务完成的提交
 func (wp *WorkerPool) SubmitWait(task func()) error {
+	//如果任务为空则直接返回
 	if task == nil {
 		return nil
 	}
+	//如果协程池状态为关闭相关状态则抛出异常
 	if wp.status == StatusClosePretreatment || wp.status == StatusClose || wp.status == StatusCloseWait {
 		return UseClosedPoolErr
 	}
+	//构造一个提交完成管道，同时将需要执行的任务封装为doneFunc方法
 	doneChan := make(chan bool)
 	var doneFunc = func() {
 		task()
 		close(doneChan)
 	}
+	//阻塞等待，当被封装成doneFunc的任务执行完成并关闭管道时，会返回
 	select {
 	case wp.workerQueue <- &doneFunc:
 		<-doneChan
@@ -106,8 +120,12 @@ func (wp *WorkerPool) SubmitWait(task func()) error {
 	return nil
 }
 
+// dispatch 任务循环
 func (wp *WorkerPool) dispatch() {
 LOOP:
+	//当协程池状态为任务循环状态，且当前工作协程数量小于最大运行数量是，则开始调度协程进行任务
+	//在成功获取到管道中的任务以后，将协程池中当前运行协程的数量增加
+	//当最大协程数目已经达到以后，会退出任务循环，即不启用新的协程运行task任务，保证协程数量不超出
 	for atomic.LoadInt32((*int32)(&wp.status)) == int32(StatusDispatchRunning) &&
 		atomic.LoadInt32(&wp.currentWorkers) < wp.maxWorkers {
 		select {
@@ -115,6 +133,7 @@ LOOP:
 			if !ok {
 				break LOOP
 			}
+			//先将当前运行协程数目自增，保证启动协程后协程数目不会多余最大运行数目
 			atomic.AddInt32(&wp.currentWorkers, 1)
 			go wp.worker(tk)
 		}
@@ -135,6 +154,7 @@ func (wp *WorkerPool) ReadyQueueLength() int {
 
 func (wp *WorkerPool) doWorker() bool {
 	if wp.workerIdleTime > 0 {
+		//开启计时器，该计时器用于控制工作协程的过期时间，每次运行完task任务后计时器会被重置
 		idle := time.NewTimer(wp.workerIdleTime)
 		for atomic.LoadInt32((*int32)(&wp.status)) != int32(StatusClose) {
 			select {
@@ -144,10 +164,12 @@ func (wp *WorkerPool) doWorker() bool {
 				}
 				(*task)()
 				idle.Reset(wp.workerIdleTime)
+			//当正在运行的协程长时间没有获取到任务超时后，会将该协程改变为任务分发协程
+			//同时会将工作协程减一，同理当该协程在获取到任务，再次将工作协程数开启到最大数量时会退出
 			case <-idle.C:
 				if atomic.LoadInt32((*int32)(&wp.status)) <= wp.maxWorkers-1 &&
-					atomic.CompareAndSwapInt32((*int32)(&wp.status), int32(StatusStable), int32(StatusDispatchRunning)) {
-
+					atomic.CompareAndSwapInt32((*int32)(&wp.status),
+						int32(StatusStable), int32(StatusDispatchRunning)) {
 					atomic.AddInt32(&wp.currentWorkers, -1)
 					wp.dispatch()
 					return false
@@ -156,6 +178,7 @@ func (wp *WorkerPool) doWorker() bool {
 			}
 		}
 	} else {
+		//如果没有设置超时时间，当任务完成后，则自动工作协程自动退出
 		for atomic.LoadInt32((*int32)(&wp.status)) != int32(StatusClose) {
 			task, ok := <-wp.workerQueue
 			if !ok {
