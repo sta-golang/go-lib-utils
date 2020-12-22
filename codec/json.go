@@ -1,7 +1,7 @@
 package codec
 
 import (
-	"encoding/json"
+	js "github.com/json-iterator/go"
 )
 
 type jsonCodec struct {
@@ -38,9 +38,9 @@ type defaultJson struct {
 
 func (dj *defaultJson) Marshal(v interface{}) ([]byte, error) {
 
-	return json.Marshal(v)
+	return js.ConfigCompatibleWithStandardLibrary.Marshal(v)
 }
 
 func (dj *defaultJson) UnMarshal(data []byte, v interface{}) error {
-	return json.Unmarshal(data, v)
+	return js.ConfigCompatibleWithStandardLibrary.Unmarshal(data, v)
 }
