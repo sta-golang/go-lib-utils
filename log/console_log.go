@@ -43,15 +43,15 @@ func (cl *consoleLog) print(level Level, format string, args ...interface{}) {
 	if !cl.nonClear {
 		switch level {
 		case DEBUG:
-			logFormat = "%s \033[36m%s\033[0m [\033[34m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[34m%s\033[0m] %s ==> %s\n"
 		case INFO:
-			logFormat = "%s \033[36m%s\033[0m [\033[32m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[32m%s\033[0m] %s ==> %s\n"
 		case WARNING:
-			logFormat = "%s \033[36m%s\033[0m [\033[33m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[33m%s\033[0m] %s ==> %s\n"
 		case ERROR:
-			logFormat = "%s \033[36m%s\033[0m [\033[31m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[31m%s\033[0m] %s ==> %s\n"
 		case FATAL:
-			logFormat = "%s \033[36m%s\033[0m [\033[35m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[35m%s\033[0m] %s ==> %s\n"
 		}
 	}
 	_, transFile, transLine, _ := runtime.Caller(cl.skip)
@@ -68,15 +68,15 @@ func (cl *consoleLog) println(level Level, args ...interface{}) {
 	if !cl.nonClear {
 		switch level {
 		case DEBUG:
-			logFormat = "%s \033[36m%s\033[0m [\033[34m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[34m%s\033[0m] %s ==> "
 		case INFO:
-			logFormat = "%s \033[36m%s\033[0m [\033[32m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[32m%s\033[0m] %s ==> "
 		case WARNING:
-			logFormat = "%s \033[36m%s\033[0m [\033[33m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[33m%s\033[0m] %s ==> "
 		case ERROR:
-			logFormat = "%s \033[36m%s\033[0m [\033[31m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[31m%s\033[0m] %s ==> "
 		case FATAL:
-			logFormat = "%s \033[36m%s\033[0m [\033[35m%s\033[0m] %s\n"
+			logFormat = "\033[1;38m%s\033[0m \033[36m%s\033[0m [\033[35m%s\033[0m] %s ==> "
 		}
 	}
 	_, transFile, transLine, _ := runtime.Caller(cl.skip)

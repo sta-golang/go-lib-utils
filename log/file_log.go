@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sta-golang/go-lib-utils/err"
 	"github.com/sta-golang/go-lib-utils/file"
+	"github.com/sta-golang/go-lib-utils/source"
 	"github.com/sta-golang/go-lib-utils/str"
 	tm "github.com/sta-golang/go-lib-utils/time"
 	"io/ioutil"
@@ -25,6 +26,9 @@ const (
 	defFileDir     = "./log"
 	minFileSize    = 10 * mb
 	fileLogName    = "sta:file_log"
+
+	syncFlagInit    = 0
+	syncFlagProcess = 1
 )
 
 var syncFlag = &asyncNode{}
@@ -41,6 +45,7 @@ type fileLog struct {
 	asyncWriter  *asyncHelper
 	level        Level
 	prefix       string
+	syncFlag     int32
 	skip         int
 }
 
@@ -61,6 +66,10 @@ func (fl *fileLog) Name() string {
 
 func (fl *fileLog) Sync() error {
 	fl.asyncWriter.ch <- syncFlag
+	for atomic.LoadInt32(&fl.syncFlag) != syncFlagProcess {
+		time.Sleep(time.Millisecond * 50)
+	}
+	atomic.StoreInt32(&fl.syncFlag, syncFlagInit)
 	return nil
 }
 
@@ -213,9 +222,10 @@ func newFileLog(conf *FileLogConfig, async bool, asyncTime time.Duration) Logger
 			fileName: conf.FileName,
 			maxSize:  conf.MaxSize,
 		},
-		level:  conf.LogLevel,
-		skip:   dfsStep,
-		prefix: conf.Prefix,
+		level:    conf.LogLevel,
+		skip:     dfsStep,
+		prefix:   conf.Prefix,
+		syncFlag: syncFlagInit,
 	}
 	helpers := make([]*writerHelper, len(levelFlages))
 	if len(table) == len(levelFlages) || len(table) == len(levelFlages)-1 {
@@ -300,6 +310,7 @@ func newFileLog(conf *FileLogConfig, async bool, asyncTime time.Duration) Logger
 		}
 		go ret.asyncWriter.worker()
 	}
+	source.Monitoring(ret)
 	go ret.writerHelper.asyncCloseFiles()
 	return ret
 }
@@ -532,6 +543,7 @@ func (ah *asyncHelper) worker() {
 		case ele := <-ah.ch:
 			if ele == syncFlag {
 				syncDoWriter()
+				atomic.StoreInt32(&ah.target.syncFlag, syncFlagProcess)
 			} else {
 				_, _ = buffers[ele.level].Write(ele.bys)
 				if buffers[ele.level].Len() > (1024<<2)-512 {

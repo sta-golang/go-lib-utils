@@ -10,8 +10,9 @@ func LogAsyncExample() {
 	//----------------------------
 	//这个代码最好放到main.go里
 	defer func() {
+		source.Sync()
 		if er := recover(); er != nil {
-			source.Sync()
+
 			panic(er)
 		}
 	}()

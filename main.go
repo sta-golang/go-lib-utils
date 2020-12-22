@@ -45,6 +45,11 @@ func main() {
 	start.Done()
 	wg.Wait()
 	fmt.Println(cnt)
+	log.Infof("hello %s 123", "hello")
+	log.Info("hello")
+	log.Info("hello")
+	log.Info("hello")
+	
 	//ReCreate()
 	//if runtime.GOOS == "windows" {
 	//	fmt.Println(system_info.GetSystemInfo())
