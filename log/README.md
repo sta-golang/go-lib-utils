@@ -96,8 +96,8 @@ prefix yyyy-mm-dd hh:MM:ss [level] 代码调用的文件:代码调用的行数 =
 
 ```go
 defer func() {
+		source.Sync()
 		if er := recover(); er != nil {
-			source.Sync()
 			panic(er)
 		}
 	}()
