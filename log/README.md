@@ -58,7 +58,7 @@ log.Infof("test %s", "sta")`
   	DayAge      int      `yaml:"day_age"`      // 文件保留日期 默认为7天
   	LogLevel    Level    `yaml:"log_level"`    // 日志等级 默认为INFO 这个可以之后设置
   	Prefix      string   `yaml:"pre_fix"`      // 日志输出前缀 默认为 FOUR-SEASONS: STA
-  	MaxSize     int64    `yaml:"max_size"`     // 最大大小 设置0或者辅助 默认失效。 最小为10mb 如果小于10mb则变成16mb
+  	MaxSize     int64    `yaml:"max_size"`     // 单个文件最大大小 设置0默认失效。 最小为10mb 如果小于10mb则变成16mb。注意win10下因为文件锁的原因失效
   	AloneWriter []string `yaml:"alone_writer"` // 单独数组的等级，设置后没有出现的向等级低的方向靠
   }
   ```
