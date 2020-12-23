@@ -47,6 +47,11 @@ func NewConfig(shards, gcInter, maxKey, setChanSize int) Config {
 		MaxKey:      maxKey,
 		SetChanSize: setChanSize,
 	}
+
+	return cfg
+}
+
+func (cfg *Config) fixConfig() {
 	if cfg.Shards <= 0 {
 		cfg.Shards = defShards
 	}
@@ -65,7 +70,6 @@ func NewConfig(shards, gcInter, maxKey, setChanSize int) Config {
 	} else if cfg.SetChanSize <= 1024 {
 		cfg.SetChanSize = defChanSize >> 1
 	}
-	return cfg
 }
 
 func NewDefaultConfig() Config {
@@ -96,7 +100,7 @@ var New = func(cfg Config) cache.Cache {
 
 // NewWithGCHelper 创建缓存对象
 var NewWithGCHelper = func(cfg Config, helper GCHelper) cache.Cache {
-
+	cfg.fixConfig()
 	cacheMap := make([]map[string]*memoryItem, cfg.Shards)
 	for i := 0; i < cfg.Shards; i++ {
 		cacheMap[i] = make(map[string]*memoryItem)
