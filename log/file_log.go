@@ -204,6 +204,7 @@ func NewFileLog(conf *FileLogConfig) Logger {
 }
 
 func newFileLog(conf *FileLogConfig, async bool, asyncTime time.Duration) Logger {
+	conf.fixConfig()
 	table := make(map[string]Level)
 	for _, key := range conf.AloneWriter {
 		if index, ok := levelIndexs[key]; ok {
@@ -552,5 +553,29 @@ func (ah *asyncHelper) worker() {
 				ah.pool.Put(ele)
 			}
 		}
+	}
+}
+
+func (flc *FileLogConfig) fixConfig() {
+	if flc.MaxSize < 0 {
+		flc.MaxSize = 0
+	}
+	if flc.MaxSize > 0 && flc.MaxSize < minFileSize {
+		flc.MaxSize = defMaxSize
+	}
+	if flc.LogLevel < 0 || int(flc.LogLevel) > len(levelFlages) {
+		flc.LogLevel = INFO
+	}
+	if flc.DayAge < 0 || flc.DayAge > 360 {
+		flc.DayAge = 0
+	}
+	if flc.Prefix == "" {
+		flc.Prefix = PREFIX
+	}
+	if flc.FileDir == "" {
+		flc.FileDir = "./log"
+	}
+	if flc.FileName == "" {
+		flc.FileName = "sta"
 	}
 }
