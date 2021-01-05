@@ -7,6 +7,7 @@ import (
 )
 
 type Status int32
+type TaskStatus int32
 
 const (
 	StatusClose             Status = -1
@@ -14,6 +15,10 @@ const (
 	StatusClosePretreatment Status = -99
 	StatusDispatchRunning   Status = 1
 	StatusStable            Status = 2
+
+	TaskStatusInit    TaskStatus = 0
+	TaskStatusRunning TaskStatus = 1
+	TaskStatusFinish  TaskStatus = 2
 
 	DefWorkerIdleTime = time.Second * 10
 
@@ -32,6 +37,23 @@ type WorkerPool struct {
 	workerIdleTime       time.Duration
 	status               Status
 	workerQueue          chan *func()
+}
+
+type workerTask struct {
+	fn     func() (interface{}, error)
+	RetVal interface{}
+	RetErr error
+	Status TaskStatus
+}
+
+// NewTask 创建一个Task
+func NewTask(fn func() (interface{}, error)) *workerTask {
+	return &workerTask{
+		fn:     fn,
+		RetVal: nil,
+		RetErr: nil,
+		Status: TaskStatusInit,
+	}
 }
 
 // New 构造方法
@@ -114,6 +136,30 @@ func (wp *WorkerPool) SubmitWait(task func()) error {
 	select {
 	case wp.workerQueue <- &doneFunc:
 		<-doneChan
+	default:
+		return UnableToAddErr
+	}
+	return nil
+}
+
+// SubmitTask 提交任务
+func (wp *WorkerPool) SubmitTask(task *workerTask) error {
+	//如果任务为空则直接返回
+	if task == nil {
+		return nil
+	}
+	//当协程池的状态为关闭相关时，抛出异常
+	if wp.status == StatusClosePretreatment || wp.status == StatusClose || wp.status == StatusCloseWait {
+		return UseClosedPoolErr
+	}
+	fn := func() {
+		task.Status = TaskStatusRunning
+		task.RetVal, task.RetErr = task.fn()
+		task.Status = TaskStatusFinish
+	}
+	//将任务放入任务队列中，准备执行
+	select {
+	case wp.workerQueue <- &fn:
 	default:
 		return UnableToAddErr
 	}
