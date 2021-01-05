@@ -5,3 +5,6 @@ type Cache interface {
 	Set(key string, val interface{}) bool
 	SetWithRemove(key string, val interface{}, expire int) bool
 }
+
+type RedisCache interface {
+}
