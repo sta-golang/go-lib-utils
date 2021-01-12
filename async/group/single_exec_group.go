@@ -1,4 +1,4 @@
-package async
+package group
 
 import "sync"
 

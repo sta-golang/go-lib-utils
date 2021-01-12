@@ -30,6 +30,18 @@ const (
 var UnableToAddErr = errors.New("the queue is full and cannot be added")
 var UseClosedPoolErr = errors.New("you are using a closed pool")
 
+type Executor interface {
+	Submit(task func()) error
+	SubmitWait(task func()) error
+	SubmitTask(task *workerTask) error
+	Stop() error
+	StopWait() error
+	Stopped() bool
+	StopGetTasks() []func()
+	Status() Status
+	ReadyQueueLength() int
+}
+
 type WorkerPool struct {
 	maxWorkers           int32
 	currentWorkers       int32
@@ -57,22 +69,22 @@ func NewTask(fn func() (interface{}, error)) *workerTask {
 }
 
 // New 构造方法
-func New(maxWorkers int) *WorkerPool {
+func New(maxWorkers int) Executor {
 	return newPool(maxWorkers, DefQueueSize, DefWorkerIdleTime)
 }
 
 // NewWithQueueSize 构造方法
-func NewWithQueueSize(maxWorkers, queueSize int) *WorkerPool {
+func NewWithQueueSize(maxWorkers, queueSize int) Executor {
 	return newPool(maxWorkers, queueSize, DefWorkerIdleTime)
 }
 
 // NewWithQueueSizeAndIdleTime 构造方法
-func NewWithQueueSizeAndIdleTime(maxWorkers, queueSize int, idle time.Duration) *WorkerPool {
+func NewWithQueueSizeAndIdleTime(maxWorkers, queueSize int, idle time.Duration) Executor {
 	return newPool(maxWorkers, queueSize, idle)
 }
 
 // newPool 正式构造
-func newPool(maxWorkers, queueSize int, idle time.Duration) *WorkerPool {
+func newPool(maxWorkers, queueSize int, idle time.Duration) Executor {
 	if maxWorkers < 1 {
 		maxWorkers = 1
 	}
@@ -236,18 +248,20 @@ func (wp *WorkerPool) doWorker() bool {
 	return true
 }
 
-func (wp *WorkerPool) Stop() {
+func (wp *WorkerPool) Stop() error {
 	_ = wp.stop(StatusClose)
+	return nil
 }
 
-func (wp *WorkerPool) StopWait() {
+func (wp *WorkerPool) StopWait() error {
 	if !wp.stop(StatusCloseWait) {
-		return
+		return nil
 	}
 	for atomic.LoadInt32(&wp.currentWorkers) > 0 {
 		time.Sleep(time.Millisecond * 100)
 	}
 	atomic.StoreInt32((*int32)(&wp.status), int32(StatusClose))
+	return nil
 }
 
 func (wp *WorkerPool) Stopped() bool {

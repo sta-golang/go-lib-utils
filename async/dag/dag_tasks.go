@@ -1,4 +1,4 @@
-package async
+package dag
 
 import (
 	"bytes"
@@ -239,26 +239,31 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 				}
 			}
 		}
-		var poolErr error
-		for i := 0; i < maxRetry; i++ {
-			if dt.workerPool == nil {
-				poolErr = workerpool.Submit(fn)
-				if poolErr == nil {
-					break
+		if dt.workerPool == nil {
+			go fn()
+		} else {
+			var poolErr error
+			for i := 0; i < maxRetry; i++ {
+				if dt.workerPool == nil {
+					poolErr = workerpool.Submit(fn)
+					if poolErr == nil {
+						break
+					}
+					time.Sleep(time.Millisecond * 200)
+				} else {
+					poolErr = dt.workerPool.Submit(fn)
+					if poolErr == nil {
+						break
+					}
+					time.Sleep(time.Millisecond * 200)
 				}
-				time.Sleep(time.Millisecond * 200)
-			} else {
-				poolErr = dt.workerPool.Submit(fn)
-				if poolErr == nil {
-					break
-				}
-				time.Sleep(time.Millisecond * 200)
+			}
+			if poolErr != nil {
+				log.FrameworkLogger.Error("workerPool Err %v ", poolErr)
+				break
 			}
 		}
-		if poolErr != nil {
-			log.FrameworkLogger.Error("workerPool Err %v ", poolErr)
-			break
-		}
+
 	}
 }
 

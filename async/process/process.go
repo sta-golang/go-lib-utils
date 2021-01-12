@@ -1,4 +1,4 @@
-package async
+package process
 
 import (
 	"sync/atomic"

@@ -6,7 +6,7 @@ import (
 )
 
 var frameOnce sync.Once
-var framePool *WorkerPool
+var framePool Executor
 
 func initPool() {
 	frameOnce.Do(func() {
@@ -28,23 +28,23 @@ func SubmitW(task func()) error {
 	return framePool.SubmitWait(task)
 }
 
-func Stop() {
+func Stop() error {
 	if framePool == nil {
 		initPool()
 	}
-	framePool.Stop()
+	return framePool.Stop()
 }
 
-func StopWait() {
+func StopWait() error {
 	if framePool == nil {
 		initPool()
 	}
-	framePool.StopWait()
+	return framePool.StopWait()
 }
 
-func StopGetTasks() {
+func StopGetTasks() []func() {
 	if framePool == nil {
 		initPool()
 	}
-	framePool.StopGetTasks()
+	return framePool.StopGetTasks()
 }
