@@ -2,12 +2,15 @@ package group
 
 import (
 	"fmt"
+	"github.com/sta-golang/go-lib-utils/log"
 	"github.com/sta-golang/go-lib-utils/pool/workerpool"
 	"github.com/sta-golang/go-lib-utils/str"
 	"sync"
+	"sync/atomic"
 )
 
 type TaskStatus int32
+type AsyncGroupStatus int32
 
 var pool *sync.Pool
 var once sync.Once
@@ -16,6 +19,9 @@ const (
 	TaskStatusInit = iota
 	TaskStatusRunning
 	TaskStatusFinish
+
+	AsyncGroupStatusInit = iota
+	AsyncGroupStatusClose
 
 	maxAsyncCloseSize = 100
 )
@@ -32,8 +38,9 @@ func initPool() {
 }
 
 type asyncGroup struct {
-	wg    sync.WaitGroup
-	tasks map[string]*task
+	wg     sync.WaitGroup
+	tasks  map[string]*task
+	Status AsyncGroupStatus
 }
 
 type task struct {
@@ -62,12 +69,16 @@ func NewAsyncGroup(size int) *asyncGroup {
 		initPool()
 	}
 	return &asyncGroup{
-		wg:    sync.WaitGroup{},
-		tasks: make(map[string]*task, size<<1),
+		wg:     sync.WaitGroup{},
+		tasks:  make(map[string]*task, size<<1),
+		Status: AsyncGroupStatusInit,
 	}
 }
 
 func (ag *asyncGroup) Add(fn func() (interface{}, error)) string {
+	if atomic.LoadInt32((*int32)(&ag.Status)) == AsyncGroupStatusClose {
+		return ""
+	}
 	id := str.XID()
 	for _, ok := ag.tasks[id]; ok; {
 		id = str.XID()
@@ -92,6 +103,9 @@ func (ag *asyncGroup) Add(fn func() (interface{}, error)) string {
 }
 
 func (ag *asyncGroup) Close() {
+	if !atomic.CompareAndSwapInt32((*int32)(&ag.Status), AsyncGroupStatusInit, AsyncGroupStatusClose) {
+		return
+	}
 	if len(ag.tasks) > maxAsyncCloseSize {
 		err := workerpool.Submit(ag.doClose)
 		if err != nil {
@@ -104,10 +118,16 @@ func (ag *asyncGroup) Close() {
 }
 
 func (ag *asyncGroup) Wait() {
+	if atomic.LoadInt32((*int32)(&ag.Status)) == AsyncGroupStatusClose {
+		log.Warn("use close asyncGroup For wait")
+	}
 	ag.wg.Wait()
 }
 
 func (ag *asyncGroup) Iterator() []*task {
+	if atomic.LoadInt32((*int32)(&ag.Status)) == AsyncGroupStatusClose {
+		return nil
+	}
 	ret := make([]*task, 0, len(ag.tasks))
 	for _, val := range ag.tasks {
 		ret = append(ret, val)
@@ -116,6 +136,9 @@ func (ag *asyncGroup) Iterator() []*task {
 }
 
 func (ag *asyncGroup) GetTask(requestID string) *task {
+	if atomic.LoadInt32((*int32)(&ag.Status)) == AsyncGroupStatusClose {
+		return nil
+	}
 	return ag.tasks[requestID]
 }
 
