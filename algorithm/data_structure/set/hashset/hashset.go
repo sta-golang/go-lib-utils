@@ -52,3 +52,11 @@ func (hs *HashSet) Empty() bool {
 func (hs *HashSet) Clear() {
 	hs.set = make(map[interface{}]struct{}, defCap)
 }
+
+func (hs *HashSet) Iterator() []interface{} {
+	ret := make([]interface{}, 0, len(hs.set))
+	for key, _ := range hs.set {
+		ret = append(ret, key)
+	}
+	return ret
+}
