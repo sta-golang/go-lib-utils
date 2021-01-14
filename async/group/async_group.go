@@ -1,10 +1,10 @@
 package group
 
 import (
+	"errors"
 	"fmt"
 	"github.com/sta-golang/go-lib-utils/log"
 	"github.com/sta-golang/go-lib-utils/pool/workerpool"
-	"github.com/sta-golang/go-lib-utils/str"
 	"sync"
 	"sync/atomic"
 )
@@ -26,6 +26,9 @@ const (
 	maxAsyncCloseSize = 100
 )
 
+var NameRepeatErr = errors.New("you use the wrong name")
+var UseClosedErr = errors.New("you used the closed component")
+
 func initPool() {
 	once.Do(func() {
 		pool = &sync.Pool{
@@ -39,11 +42,13 @@ func initPool() {
 
 type asyncGroup struct {
 	wg     sync.WaitGroup
-	tasks  map[string]*task
+	tasks  sync.Map
 	Status AsyncGroupStatus
+	size   uint32
 }
 
 type task struct {
+	name   string
 	Status TaskStatus
 	retVal interface{}
 	retErr error
@@ -64,27 +69,30 @@ func (t *task) Ret() (interface{}, error) {
 	return t.retVal, t.retErr
 }
 
-func NewAsyncGroup(size int) *asyncGroup {
+func NewAsyncGroup() *asyncGroup {
 	if pool == nil {
 		initPool()
 	}
 	return &asyncGroup{
 		wg:     sync.WaitGroup{},
-		tasks:  make(map[string]*task, size<<1),
+		tasks:  sync.Map{},
 		Status: AsyncGroupStatusInit,
 	}
 }
 
-func (ag *asyncGroup) Add(fn func() (interface{}, error)) string {
+func (ag *asyncGroup) Add(name string, fn func() (interface{}, error)) error {
 	if atomic.LoadInt32((*int32)(&ag.Status)) == AsyncGroupStatusClose {
-		return ""
+		return UseClosedErr
 	}
-	id := str.XID()
-	for _, ok := ag.tasks[id]; ok; {
-		id = str.XID()
+	if _, ok := ag.tasks.Load(name); ok {
+		return NameRepeatErr
 	}
 	curTk := pool.Get().(*task)
-	ag.tasks[id] = curTk
+	if _, ok := ag.tasks.LoadOrStore(name, curTk); ok {
+		pool.Put(curTk)
+		return NameRepeatErr
+	}
+	atomic.AddUint32(&ag.size, 1)
 	curTk.Status = TaskStatusInit
 	ag.wg.Add(1)
 	go func(tk *task) {
@@ -99,14 +107,14 @@ func (ag *asyncGroup) Add(fn func() (interface{}, error)) string {
 		tk.retVal, tk.retErr = fn()
 	}(curTk)
 
-	return id
+	return nil
 }
 
 func (ag *asyncGroup) Close() {
 	if !atomic.CompareAndSwapInt32((*int32)(&ag.Status), AsyncGroupStatusInit, AsyncGroupStatusClose) {
 		return
 	}
-	if len(ag.tasks) > maxAsyncCloseSize {
+	if ag.size > maxAsyncCloseSize {
 		err := workerpool.Submit(ag.doClose)
 		if err != nil {
 			go ag.doClose()
@@ -128,23 +136,25 @@ func (ag *asyncGroup) Iterator() []*task {
 	if atomic.LoadInt32((*int32)(&ag.Status)) == AsyncGroupStatusClose {
 		return nil
 	}
-	ret := make([]*task, 0, len(ag.tasks))
-	for _, val := range ag.tasks {
-		ret = append(ret, val)
-	}
+	ret := make([]*task, 0, atomic.LoadUint32(&ag.size))
+	ag.tasks.Range(func(key, value interface{}) bool {
+		ret = append(ret, value.(*task))
+		return true
+	})
 	return ret
 }
 
-func (ag *asyncGroup) GetTask(requestID string) *task {
+func (ag *asyncGroup) GetTask(name string) *task {
 	if atomic.LoadInt32((*int32)(&ag.Status)) == AsyncGroupStatusClose {
 		return nil
 	}
-	return ag.tasks[requestID]
+	ret, _ := ag.tasks.Load(name)
+	return ret.(*task)
 }
 
 func (ag *asyncGroup) doClose() {
-	for _, val := range ag.tasks {
-		pool.Put(val)
-	}
-	ag.tasks = nil
+	ag.tasks.Range(func(key, value interface{}) bool {
+		pool.Put(value)
+		return true
+	})
 }

@@ -7,19 +7,27 @@ import (
 )
 
 func TestAsyncGroup_Add(t *testing.T) {
-	group := NewAsyncGroup(10)
+	group := NewAsyncGroup()
 	defer group.Close()
-	reqID1 := group.Add(func() (interface{}, error) {
+	err := group.Add("hello", func() (interface{}, error) {
 		time.Sleep(time.Second)
 		fmt.Println("hello 1")
 		return "hello", nil
 	})
-	reqID2 := group.Add(func() (interface{}, error) {
+	err = group.Add("hello", func() (interface{}, error) {
 		time.Sleep(time.Millisecond)
 		fmt.Println("xixixixi")
 		return "2", nil
 	})
-	_ = group.Add(func() (interface{}, error) {
+	if err != nil {
+		fmt.Println(err)
+		_ = group.Add("hello2", func() (interface{}, error) {
+			time.Sleep(time.Millisecond)
+			fmt.Println("xixixixi")
+			return "2", nil
+		})
+	}
+	_ = group.Add("hello3", func() (interface{}, error) {
 		time.Sleep(time.Millisecond * 50)
 		fmt.Println("ccccccc")
 		return nil, nil
@@ -28,6 +36,6 @@ func TestAsyncGroup_Add(t *testing.T) {
 	for _, tk := range group.Iterator() {
 		fmt.Println(tk.Ret())
 	}
-	fmt.Println(group.GetTask(reqID1).Ret())
-	fmt.Println(group.GetTask(reqID2).Ret())
+	fmt.Println(group.GetTask("hello2").Ret())
+	fmt.Println(group.GetTask("hello3").Ret())
 }
