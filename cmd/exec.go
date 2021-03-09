@@ -30,7 +30,7 @@ func ExecCmd(cmdStr string, args ...string) (*ExecCommand, error) {
 		return nil, err
 	}
 
-	doExecWait(command, execCmd, buff)
+	doExecWait(command, execCmd, buff, false)
 
 	return execCmd, nil
 }
@@ -42,14 +42,17 @@ func ExecCmdAsync(cmdStr string, args ...string) (*ExecCommand, error) {
 	}
 
 	execCmd.wg.Add(1)
-	go doExecWait(command, execCmd, buff)
+	go doExecWait(command, execCmd, buff, true)
 	return execCmd, nil
 }
 
-func doExecWait(cmd *exec.Cmd, execCmd *ExecCommand, bytesBuff *bytes.Buffer) {
-	defer func() {
-		execCmd.wg.Done()
-	}()
+func doExecWait(cmd *exec.Cmd, execCmd *ExecCommand, bytesBuff *bytes.Buffer, isAsync bool) {
+	if isAsync {
+		defer func() {
+			execCmd.wg.Done()
+		}()
+	}
+
 	if err := cmd.Wait(); err != nil {
 		if execCmd != nil {
 			execCmd.RunErr = err
