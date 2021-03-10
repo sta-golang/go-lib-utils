@@ -1,3 +1,3 @@
 package set
 
-var onceElement = struct{}{}
+var emptyElement = struct{}{}
