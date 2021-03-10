@@ -1,9 +1,5 @@
 package set
 
-const (
-	defCap = 16
-)
-
 type StringSet struct {
 	set map[string]struct{}
 }
