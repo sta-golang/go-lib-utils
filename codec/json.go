@@ -20,7 +20,7 @@ func (jc *jsonCodec) Marshal(v interface{}) ([]byte, error) {
 }
 
 func (jc *jsonCodec) Unmarshal(data []byte, v interface{}) error {
-	return jc.helper.UnMarshal(data, v)
+	return jc.helper.Unmarshal(data, v)
 }
 
 func (jc *jsonCodec) ReplaceJsonCodec(helper JsonHelper) {
