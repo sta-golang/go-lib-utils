@@ -20,7 +20,6 @@ func NewHashSet(size ...int) *HashSet {
 	return &HashSet{set: make(map[interface{}]struct{}, cap)}
 }
 
-var onceElement = struct{}{}
 
 func (hs *HashSet) Add(elements ...interface{}) {
 	for i := range elements {
