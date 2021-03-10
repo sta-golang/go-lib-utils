@@ -1,4 +1,5 @@
-package main
+package set
+
 const (
 	defCap = 16
 )
