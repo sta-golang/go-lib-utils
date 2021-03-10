@@ -1,7 +1,5 @@
 package set
 
-import "github.com/sta-golang/go-lib-utils/algorithm/data_structure/set"
-
 const (
 	defCap = 16
 )
