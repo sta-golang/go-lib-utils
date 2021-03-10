@@ -12,14 +12,14 @@ var jsonAPI jsonCodec
 
 type JsonHelper interface {
 	Marshal(v interface{}) ([]byte, error)
-	UnMarshal(data []byte, v interface{}) error
+	Unmarshal(data []byte, v interface{}) error
 }
 
 func (jc *jsonCodec) Marshal(v interface{}) ([]byte, error) {
 	return jc.helper.Marshal(v)
 }
 
-func (jc *jsonCodec) UnMarshal(data []byte, v interface{}) error {
+func (jc *jsonCodec) Unmarshal(data []byte, v interface{}) error {
 	return jc.helper.UnMarshal(data, v)
 }
 
@@ -41,6 +41,6 @@ func (dj *defaultJson) Marshal(v interface{}) ([]byte, error) {
 	return js.ConfigCompatibleWithStandardLibrary.Marshal(v)
 }
 
-func (dj *defaultJson) UnMarshal(data []byte, v interface{}) error {
+func (dj *defaultJson) Unmarshal(data []byte, v interface{}) error {
 	return js.ConfigCompatibleWithStandardLibrary.Unmarshal(data, v)
 }
