@@ -8,7 +8,7 @@ type StringSet struct {
 	set map[string]struct{}
 }
 
-func NewHashSet(size ...int) *StringSet {
+func NewStringSet(size ...int) *StringSet {
 	cap := 16
 	if len(size) > 0 {
 		if size[0] > 16 {
