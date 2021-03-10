@@ -1,9 +1,5 @@
 package set
 
-const (
-	defCap = 16
-)
-
 type HashSet struct {
 	set map[interface{}]struct{}
 }
