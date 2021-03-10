@@ -23,7 +23,7 @@ func NewHashSet(size ...int) *HashSet {
 
 func (hs *HashSet) Add(elements ...interface{}) {
 	for i := range elements {
-		hs.set[elements[i]] = onceElement
+		hs.set[elements[i]] = emptyElement
 	}
 }
 
