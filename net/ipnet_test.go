@@ -6,5 +6,5 @@ import (
 )
 
 func TestLocalIP(t *testing.T) {
-	log.FrameworkLogger.Debug(LocalIP())
+	log.ConsoleLogger.Debug(LocalIP())
 }

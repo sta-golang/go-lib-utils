@@ -259,7 +259,7 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 				}
 			}
 			if poolErr != nil {
-				log.FrameworkLogger.Error("workerPool Err %v ", poolErr)
+				log.ConsoleLogger.Error("workerPool Err %v ", poolErr)
 				break
 			}
 		}

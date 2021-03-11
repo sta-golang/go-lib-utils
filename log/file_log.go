@@ -344,7 +344,7 @@ func (fl *fileLogWriter) asyncCloseFiles() {
 		time.Sleep(time.Millisecond * 30)
 		e := fi.Close()
 		if e != nil {
-			FrameworkLogger.Error(err.NewError(err.LogErrCode+FileCloseError,
+			ConsoleLogger.Error(err.NewError(err.LogErrCode+FileCloseError,
 				fmt.Errorf("%s file clouse Err", fi.Name())))
 		}
 
@@ -354,7 +354,7 @@ func (fl *fileLogWriter) asyncCloseFiles() {
 func (fl *fileLogWriter) cleanFiles() {
 	names, er := fl.getNeedCleanFileNames()
 	if er != nil {
-		FrameworkLogger.Error(err.NewError(err.LogErrCode+CurrencyError, fmt.Errorf("%v", er)))
+		ConsoleLogger.Error(err.NewError(err.LogErrCode+CurrencyError, fmt.Errorf("%v", er)))
 	}
 	for i := range names {
 		fileN := fmt.Sprintf("%s/%s", fl.fileDir, names[i])
@@ -365,7 +365,7 @@ func (fl *fileLogWriter) cleanFiles() {
 func (fl *fileLogWriter) writer(level Level, data []byte) {
 	er := fl.helpers[level].doWriter(data)
 	if er != nil {
-		FrameworkLogger.Errorf("level : %s writer Err %v", levelFlages[level], er)
+		ConsoleLogger.Errorf("level : %s writer Err %v", levelFlages[level], er)
 	}
 }
 
@@ -421,7 +421,7 @@ func (wh *writerHelper) doReLoadFile() {
 	if !wh.target.initFlag {
 		er := os.MkdirAll(wh.target.fileDir, 0666)
 		if er != nil {
-			FrameworkLogger.Fatalf("create Dir : %s fatal err %v", wh.target.fileDir, er)
+			ConsoleLogger.Fatalf("create Dir : %s fatal err %v", wh.target.fileDir, er)
 			panic(er)
 		}
 		wh.target.initFlag = true
@@ -438,7 +438,7 @@ func (wh *writerHelper) doReLoadFile() {
 	path := wh.getFilePath()
 	of, er := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if er != nil {
-		FrameworkLogger.Error(err.NewError(err.LogErrCode+FileWriterError,
+		ConsoleLogger.Error(err.NewError(err.LogErrCode+FileWriterError,
 			fmt.Errorf("open file : %v err %v", path, er)))
 		return
 	}
@@ -479,7 +479,7 @@ func (fl *fileLogWriter) getNeedCleanFileNames() ([]string, *err.Error) {
 		}
 		fileTime, er := getLogFileTime(f.Name())
 		if er != nil {
-			FrameworkLogger.Error(err.NewError(err.LogErrCode+CurrencyError,
+			ConsoleLogger.Error(err.NewError(err.LogErrCode+CurrencyError,
 				fmt.Errorf("%v", er)))
 			continue
 		}

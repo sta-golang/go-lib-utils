@@ -1,7 +1,7 @@
 package log
 
 var globalLogger Logger
-var FrameworkLogger = NewConsoleLog(DEBUG, "[STA : go-groups-utils]")
+var ConsoleLogger = NewConsoleLog(DEBUG, "[STA : go-groups-utils]")
 
 const (
 	CurrencyError    = 00
