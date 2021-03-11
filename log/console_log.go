@@ -20,7 +20,7 @@ type consoleLog struct {
 }
 
 func NewConsoleLog(level Level, prefix string) Logger {
-	if prefix == "windows" {
+	if prefix == "" {
 		prefix = PREFIX
 	}
 	return &consoleLog{
