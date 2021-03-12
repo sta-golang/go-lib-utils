@@ -65,3 +65,9 @@ func parseTimeToStr(tm time.Time, layout string) string {
 func GetNowTime() time.Time {
 	return time.Now().In(cstZone)
 }
+
+func FuncTiming(fn func()) time.Duration {
+	startT := GetNowTime()
+	fn()
+	return GetNowTime().Sub(startT)
+}
