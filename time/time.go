@@ -21,6 +21,21 @@ func Location() *time.Location {
 	return cstZone
 }
 
+// ParseTimeToStr ...
+func ParseTimeToStr(tm time.Time) string {
+	return parseTimeToStr(tm.In(cstZone), LayoutTime)
+}
+
+// ParseDataToStr ...
+func ParseDataToStr(tm time.Time) string {
+	return parseTimeToStr(tm.In(cstZone), LayoutDate)
+}
+
+// ParseDataTimeToStr ...
+func ParseDataTimeToStr(tm time.Time) string {
+	return parseTimeToStr(tm.In(cstZone), LayoutDateTime)
+}
+
 // GetNowDateTimeStr 获取当前时间日期的字符串
 func GetNowDateTimeStr() string {
 	return parseTimeToStr(time.Now().In(cstZone), LayoutDateTime)
