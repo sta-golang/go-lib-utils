@@ -101,21 +101,7 @@ func (ag *asyncGroup) Add(name string, fn func() (interface{}, error)) error {
 	atomic.AddUint32(&ag.size, 1)
 	curTk.Status = TaskStatusInit
 	ag.wg.Add(1)
-	if ag.executor == nil {
-		go func(tk *task) {
-			defer func() {
-				if pErr := recover(); pErr != nil {
-					tk.retErr = fmt.Errorf("panic: %v", pErr)
-				}
-				tk.Status = TaskStatusFinish
-				ag.wg.Done()
-			}()
-			tk.Status = TaskStatusRunning
-			tk.retVal, tk.retErr = fn()
-		}(curTk)
-		return nil
-	}
-	err := ag.executor.Submit(func() {
+	taskFn := func() {
 		defer func() {
 			if pErr := recover(); pErr != nil {
 				curTk.retErr = fmt.Errorf("panic: %v", pErr)
@@ -125,8 +111,12 @@ func (ag *asyncGroup) Add(name string, fn func() (interface{}, error)) error {
 		}()
 		curTk.Status = TaskStatusRunning
 		curTk.retVal, curTk.retErr = fn()
-	})
-
+	}
+	if ag.executor == nil {
+		go taskFn()
+		return nil
+	}
+	err := ag.executor.Submit(taskFn)
 	return err
 }
 
