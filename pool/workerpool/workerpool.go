@@ -22,9 +22,9 @@ const (
 
 	DefWorkerIdleTime = time.Second * 10
 
-	DefQueueSize = 1024
-	MaxWorkers   = 4096
-	MaxQueueSize = 8192 << 1
+	DefQueueSize = 2048
+	MaxWorkers   = 8192
+	MaxQueueSize = 8192 << 6
 )
 
 var UnableToAddErr = errors.New("the queue is full and cannot be added")

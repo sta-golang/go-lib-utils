@@ -75,7 +75,9 @@ func NewAsyncGroup(poolSize ...int) *asyncGroup {
 		initPool()
 	}
 	var workP workerpool.Executor
-	if len(poolSize) > 0 && poolSize[0] > 0 {
+	if len(poolSize) > 0 && len(poolSize) == 2 {
+		workP = workerpool.NewWithQueueSize(poolSize[0], poolSize[1])
+	} else if len(poolSize) > 0 && poolSize[0] > 0 {
 		workP = workerpool.New(poolSize[0])
 	}
 	return &asyncGroup{
