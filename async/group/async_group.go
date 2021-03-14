@@ -41,10 +41,11 @@ func initPool() {
 }
 
 type asyncGroup struct {
-	wg     sync.WaitGroup
-	tasks  sync.Map
-	Status AsyncGroupStatus
-	size   uint32
+	wg       sync.WaitGroup
+	tasks    sync.Map
+	Status   AsyncGroupStatus
+	size     uint32
+	executor workerpool.Executor
 }
 
 type task struct {
@@ -69,14 +70,19 @@ func (t *task) Ret() (interface{}, error) {
 	return t.retVal, t.retErr
 }
 
-func NewAsyncGroup() *asyncGroup {
+func NewAsyncGroup(poolSize ...int) *asyncGroup {
 	if pool == nil {
 		initPool()
 	}
+	var workP workerpool.Executor
+	if len(poolSize) > 0 && poolSize[0] > 0 {
+		workP = workerpool.New(poolSize[0])
+	}
 	return &asyncGroup{
-		wg:     sync.WaitGroup{},
-		tasks:  sync.Map{},
-		Status: AsyncGroupStatusInit,
+		wg:       sync.WaitGroup{},
+		tasks:    sync.Map{},
+		Status:   AsyncGroupStatusInit,
+		executor: workP,
 	}
 }
 
@@ -95,19 +101,33 @@ func (ag *asyncGroup) Add(name string, fn func() (interface{}, error)) error {
 	atomic.AddUint32(&ag.size, 1)
 	curTk.Status = TaskStatusInit
 	ag.wg.Add(1)
-	go func(tk *task) {
+	if ag.executor == nil {
+		go func(tk *task) {
+			defer func() {
+				if pErr := recover(); pErr != nil {
+					tk.retErr = fmt.Errorf("panic: %v", pErr)
+				}
+				tk.Status = TaskStatusFinish
+				ag.wg.Done()
+			}()
+			tk.Status = TaskStatusRunning
+			tk.retVal, tk.retErr = fn()
+		}(curTk)
+		return nil
+	}
+	err := ag.executor.Submit(func() {
 		defer func() {
 			if pErr := recover(); pErr != nil {
-				tk.retErr = fmt.Errorf("panic: %v", pErr)
+				curTk.retErr = fmt.Errorf("panic: %v", pErr)
 			}
-			tk.Status = TaskStatusFinish
+			curTk.Status = TaskStatusFinish
 			ag.wg.Done()
 		}()
-		tk.Status = TaskStatusRunning
-		tk.retVal, tk.retErr = fn()
-	}(curTk)
+		curTk.Status = TaskStatusRunning
+		curTk.retVal, curTk.retErr = fn()
+	})
 
-	return nil
+	return err
 }
 
 func (ag *asyncGroup) Close() {

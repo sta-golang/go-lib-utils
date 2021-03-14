@@ -7,7 +7,7 @@ import (
 )
 
 func TestAsyncGroup_Add(t *testing.T) {
-	group := NewAsyncGroup()
+	group := NewAsyncGroup(4)
 	defer group.Close()
 	err := group.Add("hello", func() (interface{}, error) {
 		time.Sleep(time.Second)
@@ -15,20 +15,20 @@ func TestAsyncGroup_Add(t *testing.T) {
 		return "hello", nil
 	})
 	err = group.Add("hello", func() (interface{}, error) {
-		time.Sleep(time.Millisecond)
+		time.Sleep(time.Millisecond * 5000)
 		fmt.Println("xixixixi")
 		return "2", nil
 	})
 	if err != nil {
 		fmt.Println(err)
 		_ = group.Add("hello2", func() (interface{}, error) {
-			time.Sleep(time.Millisecond)
+			time.Sleep(time.Millisecond * 7000)
 			fmt.Println("xixixixi")
 			return "2", nil
 		})
 	}
 	_ = group.Add("hello3", func() (interface{}, error) {
-		time.Sleep(time.Millisecond * 50)
+		time.Sleep(time.Millisecond * 2000)
 		fmt.Println("ccccccc")
 		return nil, nil
 	})
