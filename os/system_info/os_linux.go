@@ -1,6 +1,6 @@
 //+build !windows
 
-package system_info
+package systeminfo
 
 import (
 	"github.com/sta-golang/go-lib-utils/server"

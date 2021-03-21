@@ -1,4 +1,4 @@
-package data_structure
+package datastructure
 
 type BinaryTree struct {
 	root *binaryTreeNode
@@ -31,7 +31,7 @@ func (bt *BinaryTree) getSize(node *binaryTreeNode) int {
 // Put 返回值为替换后的旧值为nil是没有退化为插入
 func (bt *BinaryTree) Put(key Comparable, data interface{}) interface{} {
 	var rst interface{}
-	bt.root,rst = bt.put(bt.root, key, data)
+	bt.root, rst = bt.put(bt.root, key, data)
 	return rst
 }
 
@@ -50,7 +50,7 @@ func (bt *BinaryTree) put(node *binaryTreeNode, key Comparable, data interface{}
 			return node, nil
 		}
 	} else if cmp < 0 {
-		node.leftNode, oldData =  bt.put(node.leftNode, key, data)
+		node.leftNode, oldData = bt.put(node.leftNode, key, data)
 	} else {
 		node.rightNode, oldData = bt.put(node.leftNode, key, data)
 	}
@@ -76,14 +76,14 @@ func (bt *BinaryTree) Insert(key Comparable, data interface{}) bool {
 
 func (bt *BinaryTree) insert(node *binaryTreeNode, key Comparable, data interface{}) (*binaryTreeNode, bool) {
 	if node == nil {
-		return bt.newBinaryTreeNode(key, data),true
+		return bt.newBinaryTreeNode(key, data), true
 	}
 	var rst bool
 	cmp := key.CompareTo(node.key)
 	if cmp == 0 {
 		return node, false
 	} else if cmp < 0 {
-		node.leftNode, rst  = bt.insert(node.leftNode, key, data)
+		node.leftNode, rst = bt.insert(node.leftNode, key, data)
 	} else {
 		node.rightNode, rst = bt.insert(node.rightNode, key, data)
 	}
@@ -111,7 +111,7 @@ func (bt *BinaryTree) get(node *binaryTreeNode, key Comparable) interface{} {
 }
 
 func (bt *BinaryTree) Delete(key Comparable) {
-	bt.root = bt.delete(bt.root,key)
+	bt.root = bt.delete(bt.root, key)
 }
 
 func (bt *BinaryTree) delete(node *binaryTreeNode, key Comparable) *binaryTreeNode {
@@ -131,7 +131,7 @@ func (bt *BinaryTree) delete(node *binaryTreeNode, key Comparable) *binaryTreeNo
 		node.leftNode = temp.leftNode
 	} else if cmp < 0 {
 		node.leftNode = bt.delete(node.leftNode, key)
-	} else if cmp > 0{
+	} else if cmp > 0 {
 		node.rightNode = bt.delete(node.rightNode, key)
 	}
 	node.size = bt.getSize(node.leftNode) + bt.getSize(node.rightNode) + 1
@@ -164,14 +164,12 @@ func (bt *BinaryTree) delMax(node *binaryTreeNode) *binaryTreeNode {
 	return node
 }
 
-
 func (bt *BinaryTree) GetMin() interface{} {
 	if bt.root == nil {
 		return nil
 	}
 	return bt.getMin(bt.root).data
 }
-
 
 func (bt *BinaryTree) getMin(node *binaryTreeNode) *binaryTreeNode {
 	if node.leftNode == nil {

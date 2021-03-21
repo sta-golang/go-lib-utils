@@ -1,4 +1,4 @@
-package data_structure
+package datastructure
 
 func absInt(a int) int {
 	if a > 0 {

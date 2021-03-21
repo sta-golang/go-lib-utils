@@ -1,4 +1,4 @@
-package data_structure
+package datastructure
 
 var defQueueSize = 16
 
@@ -20,8 +20,6 @@ func NewQueue() *Queue {
 		size:      0,
 	}
 }
-
-
 
 func NewQueueWithSize(size int) *Queue {
 	if size <= 0 {

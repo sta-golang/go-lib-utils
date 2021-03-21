@@ -1,4 +1,4 @@
-package system_info
+package systeminfo
 
 func GetSystemInfo() *SystemInfo {
 	return getWindowsSystemInfo()
