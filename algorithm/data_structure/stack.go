@@ -1,4 +1,4 @@
-package datastructure
+package data_structure
 
 type Stack struct {
 	cnt      int

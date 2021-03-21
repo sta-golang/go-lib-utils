@@ -1,4 +1,4 @@
-package datastructure
+package data_structure
 
 type linkedListNode struct {
 	prev *linkedListNode

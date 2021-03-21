@@ -1,4 +1,4 @@
-package datastructure
+package data_structure
 
 var defQueueSize = 16
 
