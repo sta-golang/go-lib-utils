@@ -1,3 +1,4 @@
+// @Author : zk_kiger
 package data_structure
 
 import (
@@ -118,6 +119,16 @@ func (pq *PriorityQueue) Remove(value interface{}) *Element {
 	element := pq.GetByValue(value)
 	heap.Remove(pq.holder, element.Index)
 	return element
+}
+
+// Len elements length
+func (pq *PriorityQueue) Len() int {
+	return pq.holder.Len()
+}
+
+// Empty elements is empty (Len == 0)
+func (pq *PriorityQueue) Empty() bool {
+	return pq.holder.Len() == 0
 }
 
 // Update update modifies the priority and value of an Item in the queue.

@@ -1,4 +1,4 @@
-package systeminfo
+package system_info
 
 import (
 	"fmt"

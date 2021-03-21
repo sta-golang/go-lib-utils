@@ -1,4 +1,4 @@
-package systeminfo
+package system_info
 
 import (
 	"github.com/sta-golang/go-lib-utils/server"

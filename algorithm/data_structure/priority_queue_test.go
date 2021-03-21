@@ -9,20 +9,20 @@ func TestPriorityQueueNoLock(t *testing.T) {
 	// 测试无锁版本
 	priorityQueue := NewPriorityQueue()
 	element1 := &Element{
-		value:    "192.10.1.4",
-		priority: 10,
+		Value:    "192.10.1.4",
+		Priority: 10,
 	}
 	element2 := &Element{
-		value:    "192.111.1.4",
-		priority: 4,
+		Value:    "192.111.1.4",
+		Priority: 4,
 	}
 	element3 := &Element{
-		value:    "192.10.1.4",
-		priority: 8,
+		Value:    "192.10.1.4",
+		Priority: 8,
 	}
 	element4 := &Element{
-		value:    "192.10.1.111",
-		priority: 8,
+		Value:    "192.10.1.111",
+		Priority: 8,
 	}
 	priorityQueue.Push(element1)
 	priorityQueue.Push(element2)
@@ -40,20 +40,20 @@ func TestPriorityQueueWithLock(t *testing.T) {
 	// 测试锁版本
 	priorityQueue := NewPriorityQueue(WithGoroutineSafe())
 	element1 := &Element{
-		value:    "192.10.1.11",
-		priority: 0,
+		Value:    "192.10.1.11",
+		Priority: 0,
 	}
 	element2 := &Element{
-		value:    "192.111.1.22",
-		priority: 8,
+		Value:    "192.111.1.22",
+		Priority: 8,
 	}
 	element3 := &Element{
-		value:    "192.10.1.33",
-		priority: 8,
+		Value:    "192.10.1.33",
+		Priority: 8,
 	}
 	element4 := &Element{
-		value:    "192.10.1.44",
-		priority: 8,
+		Value:    "192.10.1.44",
+		Priority: 8,
 	}
 	priorityQueue.Push(element1)
 	priorityQueue.Push(element2)

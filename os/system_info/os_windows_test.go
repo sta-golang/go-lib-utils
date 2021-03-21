@@ -1,1 +1,1 @@
-package systeminfo
+package system_info
