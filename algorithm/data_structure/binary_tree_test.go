@@ -10,7 +10,7 @@ type key struct {
 }
 
 func (k *key) CompareTo(c Comparable) int {
-	k2,_ := c.(*key)
+	k2, _ := c.(*key)
 	if k.cmp == k2.cmp {
 		return 0
 	} else if k.cmp > k2.cmp {
@@ -31,10 +31,10 @@ func Order(node *binaryTreeNode) {
 
 func TestBinaryTree_GetMin(t *testing.T) {
 	testBiTree := &BinaryTree{}
-	testBiTree.Insert(&key{3},12)
-	testBiTree.Insert(&key{1},5)
-	testBiTree.Insert(&key{2},6)
-	testBiTree.Put(&key{3},99999)
+	testBiTree.Insert(&key{3}, 12)
+	testBiTree.Insert(&key{1}, 5)
+	testBiTree.Insert(&key{2}, 6)
+	testBiTree.Put(&key{3}, 99999)
 	Order(testBiTree.root)
 	fmt.Println("------------")
 	testBiTree.Delete(&key{2})
