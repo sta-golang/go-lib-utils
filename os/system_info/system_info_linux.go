@@ -3,5 +3,5 @@
 package system_info
 
 func GetSystemInfo() *SystemInfo {
-	return getWindowsSystemInfo()
+	return getLinuxSystemInfo()
 }

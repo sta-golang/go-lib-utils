@@ -104,8 +104,8 @@ func MemoryUsage(virtual bool) (used, free, total uint64) {
 	return
 }
 
-// GetLinuxSystemInfo 获取系统运行信息.
-func GetLinuxSystemInfo() *SystemInfo {
+// getLinuxSystemInfo 获取系统运行信息.
+func getLinuxSystemInfo() *SystemInfo {
 	//运行时信息
 	mStat := &runtime.MemStats{}
 	runtime.ReadMemStats(mStat)
