@@ -36,7 +36,8 @@ type win32_SystemProcessorPerformanceInformation struct {
 	InterruptCount uint32
 }
 
-func MemoryUsage() (used, free, total uint64) {
+// MemoryUsage  virtual 没有影响 只是为了兼容linux
+func MemoryUsage(virtual bool) (used, free, total uint64) {
 	var memInfo memoryStatusEx
 	memInfo.cbSize = uint32(unsafe.Sizeof(memInfo))
 	_, _, _ = GlobalMemoryStatusEx.Call(uintptr(unsafe.Pointer(&memInfo)))
