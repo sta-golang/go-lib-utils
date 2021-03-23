@@ -149,7 +149,7 @@ func getWindowsSystemInfo() *SystemInfo {
 		di.Children = append(di.Children, cl)
 	}
 	//内存使用信息
-	memUsed, memFree, memTotal := MemoryUsage()
+	memUsed, memFree, memTotal := MemoryUsage(false)
 
 	serverName := server.ServerName
 
