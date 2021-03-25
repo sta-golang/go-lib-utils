@@ -18,14 +18,15 @@ import (
 )
 
 const (
-	reOpenFileTime = 10
-	logSuffix      = "log"
-	mb             = 1024 * 1024
-	defMaxSize     = 16 * mb
-	allLevel       = "ALL"
-	defFileDir     = "./log"
-	minFileSize    = 10 * mb
-	fileLogName    = "sta:file_log"
+	defReOpenFileTime = 10
+	maxReOpenFileTime = 60 * 60
+	logSuffix         = "log"
+	mb                = 1024 * 1024
+	defMaxSize        = 16 * mb
+	allLevel          = "ALL"
+	defFileDir        = "./log"
+	minFileSize       = 10 * mb
+	fileLogName       = "sta:file_log"
 
 	syncFlagInit    = 0
 	syncFlagProcess = 1
@@ -169,6 +170,7 @@ type FileLogConfig struct {
 	Prefix      string   `yaml:"pre_fix"`      // 日志输出前缀 默认为 FOUR-SEASONS: STA
 	MaxSize     int64    `yaml:"max_size"`     // 最大大小 设置0或者辅助 默认失效。 最小为10mb 如果小于10mb则变成16mb
 	AloneWriter []string `yaml:"alone_writer"` // 单独数组的等级，设置后没有出现的向等级低的方向靠
+	ReOpen      int      `yaml:"re_open"`      // 重新打开文件的的时间 单位为秒 最小10秒 最大 一小时
 }
 
 var DefaultFileLogConfig = func() *FileLogConfig {
@@ -214,14 +216,21 @@ func newFileLog(conf *FileLogConfig, async bool, asyncTime time.Duration) Logger
 	if conf.MaxSize > 0 && conf.MaxSize < minFileSize {
 		conf.MaxSize = defMaxSize
 	}
+	if conf.ReOpen < defReOpenFileTime {
+		conf.ReOpen = defReOpenFileTime
+	}
+	if conf.ReOpen > maxReOpenFileTime {
+		conf.ReOpen = maxReOpenFileTime
+	}
 	ret := &fileLog{
 		writerHelper: &fileLogWriter{
-			helpers:  nil,
-			fileDir:  conf.FileDir,
-			closeCh:  make(chan *os.File, 16),
-			dayAge:   conf.DayAge,
-			fileName: conf.FileName,
-			maxSize:  conf.MaxSize,
+			helpers:    nil,
+			fileDir:    conf.FileDir,
+			closeCh:    make(chan *os.File, 16),
+			dayAge:     conf.DayAge,
+			fileName:   conf.FileName,
+			maxSize:    conf.MaxSize,
+			reOpenTime: conf.ReOpen,
 		},
 		level:    conf.LogLevel,
 		skip:     dfsStep,
@@ -317,13 +326,14 @@ func newFileLog(conf *FileLogConfig, async bool, asyncTime time.Duration) Logger
 }
 
 type fileLogWriter struct {
-	helpers  []*writerHelper
-	fileDir  string
-	closeCh  chan *os.File
-	dayAge   int
-	fileName string
-	maxSize  int64
-	initFlag bool
+	helpers    []*writerHelper
+	fileDir    string
+	closeCh    chan *os.File
+	dayAge     int
+	fileName   string
+	maxSize    int64
+	initFlag   bool
+	reOpenTime int
 }
 
 // writerHelper
@@ -371,8 +381,7 @@ func (fl *fileLogWriter) writer(level Level, data []byte) {
 
 func (wh *writerHelper) doWriter(data []byte) *err.Error {
 	openFile := wh.getOpenFile()
-
-	if openFile == nil || tm.GetNowTime().Unix()-atomic.LoadInt64(&wh.openTime) >= reOpenFileTime {
+	if openFile == nil || tm.GetNowTime().Unix()-atomic.LoadInt64(&wh.openTime) >= int64(wh.target.reOpenTime) {
 		wh.lock.Lock()
 		wh.reLoadFile()
 		wh.lock.Unlock()
@@ -454,7 +463,7 @@ func (wh *writerHelper) doReLoadFile() {
 }
 
 func (wh *writerHelper) reLoadFile() {
-	if wh.getOpenFile() == nil || tm.GetNowTime().Unix()-atomic.LoadInt64(&wh.openTime) >= reOpenFileTime {
+	if wh.getOpenFile() == nil || tm.GetNowTime().Unix()-atomic.LoadInt64(&wh.openTime) >= int64(wh.target.reOpenTime) {
 		wh.doReLoadFile()
 	}
 }

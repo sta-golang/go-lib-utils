@@ -40,6 +40,14 @@ func BenchmarkFileLogAsSize(b *testing.B) {
 	//fmt.Println(time.Now().Sub(now).Milliseconds())
 }
 
+func TestFileLog(t *testing.T) {
+	config := FileLogConfig{
+		ReOpen: 120,
+	}
+	logger := NewFileLog(&config)
+	logger.Info("hello")
+}
+
 func BenchmarkNewFileLogReload(b *testing.B) {
 	b.ResetTimer()
 	w := writerHelper{
