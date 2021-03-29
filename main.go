@@ -32,7 +32,7 @@ func main() {
 	time.Sleep(time.Second * 2)
 	fmt.Println(tm.ParseDataTimeToStr(tm.GetNowTime().Add(-(time.Hour * 24 * 30))))
 	timing := tm.FuncTiming(func() {
-		fmt.Println(systeminfo.MemoryUsage())
+		fmt.Println(systeminfo.MemoryUsage(false))
 	})
 	fmt.Println(timing)
 	info := systeminfo.GetSystemInfo()

@@ -1,6 +1,7 @@
 package system_info
 
 import (
+	"github.com/sta-golang/go-lib-utils/net"
 	"github.com/sta-golang/go-lib-utils/server"
 	"runtime"
 	"syscall"
@@ -153,11 +154,16 @@ func getWindowsSystemInfo() *SystemInfo {
 
 	serverName := server.ServerName
 
+	addr, _ := net.LocalIP()
+	ipaddr := "127.0.0.1"
+	if addr != nil {
+		ipaddr = addr.String()
+	}
 	return &SystemInfo{
-		ServerName: serverName,
-		SystemOs:   runtime.GOOS,
-
-		Runtime:      int64(server.ServiceUptime()),
+		ServerName:   serverName,
+		SystemOs:     runtime.GOOS,
+		LocalIP:      ipaddr,
+		Runtime:      server.ServiceUptime(),
 		GoroutineNum: runtime.NumGoroutine(),
 		CPUNum:       runtime.NumCPU(),
 		CPUUser:      cpuUserRate,

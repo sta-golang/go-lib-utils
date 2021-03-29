@@ -3,12 +3,14 @@
 package system_info
 
 import (
-	"github.com/sta-golang/go-lib-utils/server"
 	"io/ioutil"
 	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/sta-golang/go-lib-utils/net"
+	"github.com/sta-golang/go-lib-utils/server"
 )
 
 // 目前只支持linux
@@ -134,12 +136,16 @@ func getLinuxSystemInfo() *SystemInfo {
 	memUsed, memFree, memTotal := MemoryUsage(true)
 
 	serverName := server.ServerName
-
+	addr, _ := net.LocalIP()
+	ipaddr := "127.0.0.1"
+	if addr != nil {
+		ipaddr = addr.String()
+	}
 	return &SystemInfo{
-		ServerName: serverName,
-		SystemOs:   runtime.GOOS,
-
-		Runtime:      int64(server.ServiceUptime()),
+		ServerName:   serverName,
+		SystemOs:     runtime.GOOS,
+		LocalIP:      ipaddr,
+		Runtime:      server.ServiceUptime(),
 		GoroutineNum: runtime.NumGoroutine(),
 		CPUNum:       runtime.NumCPU(),
 		CPUUser:      cpuUserRate,
