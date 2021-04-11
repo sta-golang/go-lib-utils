@@ -1,6 +1,10 @@
 package log
 
-import "sync"
+import (
+	"sync"
+
+	"context"
+)
 
 var (
 	levelFlages = [...]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
@@ -23,6 +27,8 @@ const (
 	WARNING
 	ERROR
 	FATAL
+
+	logContextKey = "staLoggerCtx"
 )
 
 func GetLevelName(level Level) string {
@@ -32,27 +38,54 @@ func GetLevelName(level Level) string {
 	return levelFlages[level]
 }
 
+func LogContextKeyMap(ctx context.Context, keyMap map[string]string) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return context.WithValue(ctx, logContextKey, keyMap)
+}
+
 // Logger log接口
 type Logger interface {
 	Debug(args ...interface{})
 
+	DebugContext(ctx context.Context, args ...interface{})
+
 	Debugf(format string, args ...interface{})
+
+	DebugContextf(ctx context.Context, format string, args ...interface{})
 
 	Info(args ...interface{})
 
+	InfoContext(ctx context.Context, args ...interface{})
+
 	Infof(format string, args ...interface{})
+
+	InfoContextf(ctx context.Context, format string, args ...interface{})
 
 	Warn(args ...interface{})
 
+	WarnContext(ctx context.Context, args ...interface{})
+
 	Warnf(format string, args ...interface{})
+
+	WarnContextf(ctx context.Context, format string, args ...interface{})
 
 	Error(args ...interface{})
 
+	ErrorContext(ctx context.Context, args ...interface{})
+
 	Errorf(format string, args ...interface{})
+
+	ErrorContextf(ctx context.Context, format string, args ...interface{})
 
 	Fatal(args ...interface{})
 
+	FatalContext(ctx context.Context, args ...interface{})
+
 	Fatalf(format string, args ...interface{})
+
+	FatalContextf(ctx context.Context, format string, args ...interface{})
 
 	// SetLevel 设置输出端日志级别
 	SetLevel(level Level)

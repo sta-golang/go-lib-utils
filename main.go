@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/sta-golang/go-lib-utils/log"
-	systeminfo "github.com/sta-golang/go-lib-utils/os/system_info"
-	tm "github.com/sta-golang/go-lib-utils/time"
-	"runtime"
 	"time"
+
+	"github.com/sta-golang/go-lib-utils/log"
+	"github.com/sta-golang/go-lib-utils/log/example"
 )
 
 func TestTag() {
@@ -23,22 +22,31 @@ MYLoop:
 }
 
 func main() {
-	arr := make([]int, 1024000)
-	arr2 := make([]int, 1024000)
-	arr2[3] = 5
-	time.Sleep(time.Second)
-	arr2 = nil
-	runtime.GC()
-	time.Sleep(time.Second * 2)
-	fmt.Println(tm.ParseDataTimeToStr(tm.GetNowTime().Add(-(time.Hour * 24 * 30))))
-	timing := tm.FuncTiming(func() {
-		fmt.Println(systeminfo.MemoryUsage(false))
-	})
-	fmt.Println(timing)
-	info := systeminfo.GetSystemInfo()
+	//TestLog()
+	//example.LogYamlExample()
+	example.LogContext()
+}
 
-	fmt.Println(info)
-	arr[50] = 300
+func TestLog() {
+	lg := log.NewFileLogAndAsync(log.DefaultFileLogConfigForAloneWriter(
+		[]string{log.GetLevelName(log.INFO), log.GetLevelName(log.WARNING), log.GetLevelName(log.ERROR)}), time.Second*3)
+	lg.Warn("hello")
+	ctx := log.LogContextKeyMap(nil, map[string]string{
+		"user": "thesevensky",
+		"id":   "63237777",
+	})
+	log.ConsoleLogger.Info("hello")
+	log.ConsoleLogger.InfoContext(ctx, "hello")
+	log.ConsoleLogger.Warn("hello")
+	log.ConsoleLogger.Error("hello")
+	log.ConsoleLogger.InfoContextf(ctx, "hello %s = %v", "hello1", 1)
+	log.ConsoleLogger.InfoContextf(ctx, "hello wo %s %d", " test", 1)
+	log.ConsoleLogger.Info("hello")
+	log.ConsoleLogger.Infof("hello %s", "test")
+	lg.Warnf("hello world")
+	lg.WarnContext(ctx, "hello world11111111111111111111111111111")
+	lg.WarnContextf(ctx, "hello %s lalal", " test")
+	lg.WarnContextf(ctx, "hello world %s", "11111")
 }
 
 func ReCreate() {

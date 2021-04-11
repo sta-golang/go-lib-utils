@@ -2,12 +2,8 @@ package log
 
 import (
 	"bytes"
+	"context"
 	"fmt"
-	"github.com/sta-golang/go-lib-utils/err"
-	"github.com/sta-golang/go-lib-utils/file"
-	"github.com/sta-golang/go-lib-utils/source"
-	"github.com/sta-golang/go-lib-utils/str"
-	tm "github.com/sta-golang/go-lib-utils/time"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -15,6 +11,13 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/sta-golang/go-lib-utils/codec"
+	"github.com/sta-golang/go-lib-utils/err"
+	"github.com/sta-golang/go-lib-utils/file"
+	"github.com/sta-golang/go-lib-utils/source"
+	"github.com/sta-golang/go-lib-utils/str"
+	tm "github.com/sta-golang/go-lib-utils/time"
 )
 
 const (
@@ -83,40 +86,80 @@ func (fl *fileLog) Debugf(format string, args ...interface{}) {
 	fl.print(DEBUG, format, args...)
 }
 
+func (fl *fileLog) DebugContextf(ctx context.Context, format string, args ...interface{}) {
+	fl.printContext(ctx, DEBUG, format, args...)
+}
+
 func (fl *fileLog) Warnf(format string, args ...interface{}) {
 	fl.print(WARNING, format, args...)
+}
+
+func (fl *fileLog) WarnContextf(ctx context.Context, format string, args ...interface{}) {
+	fl.printContext(ctx, WARNING, format, args...)
 }
 
 func (fl *fileLog) Infof(format string, args ...interface{}) {
 	fl.print(INFO, format, args...)
 }
 
+func (fl *fileLog) InfoContextf(ctx context.Context, format string, args ...interface{}) {
+	fl.printContext(ctx, INFO, format, args...)
+}
+
 func (fl *fileLog) Errorf(format string, args ...interface{}) {
 	fl.print(ERROR, format, args...)
+}
+
+func (fl *fileLog) ErrorContextf(ctx context.Context, format string, args ...interface{}) {
+	fl.printContext(ctx, ERROR, format, args...)
 }
 
 func (fl *fileLog) Fatalf(format string, args ...interface{}) {
 	fl.print(FATAL, format, args...)
 }
 
+func (fl *fileLog) FatalContextf(ctx context.Context, format string, args ...interface{}) {
+	fl.printContext(ctx, FATAL, format, args...)
+}
+
 func (fl *fileLog) Debug(args ...interface{}) {
 	fl.println(DEBUG, args...)
+}
+
+func (fl *fileLog) DebugContext(ctx context.Context, args ...interface{}) {
+	fl.printlnContext(ctx, DEBUG, args...)
 }
 
 func (fl *fileLog) Warn(args ...interface{}) {
 	fl.println(WARNING, args...)
 }
 
+func (fl *fileLog) WarnContext(ctx context.Context, args ...interface{}) {
+	fl.printlnContext(ctx, WARNING, args...)
+}
+
 func (fl *fileLog) Info(args ...interface{}) {
 	fl.println(INFO, args...)
+}
+
+func (fl *fileLog) InfoContext(ctx context.Context, args ...interface{}) {
+	fl.printlnContext(ctx, INFO, args...)
 }
 
 func (fl *fileLog) Error(args ...interface{}) {
 	fl.println(ERROR, args...)
 }
 
+func (fl *fileLog) ErrorContext(ctx context.Context, args ...interface{}) {
+	fl.printlnContext(ctx, ERROR, args...)
+}
+
 func (fl *fileLog) Fatal(args ...interface{}) {
 	fl.println(FATAL, args...)
+}
+
+func (fl *fileLog) FatalContext(ctx context.Context, args ...interface{}) {
+	fl.printlnContext(ctx, FATAL, args...)
 }
 
 func (fl *fileLog) print(level Level, format string, args ...interface{}) {
@@ -134,6 +177,28 @@ func (fl *fileLog) print(level Level, format string, args ...interface{}) {
 	fl.writerHelper.writer(level, str.StringToBytes(&data))
 }
 
+func (fl *fileLog) printContext(ctx context.Context, level Level, format string, args ...interface{}) {
+	if level < fl.level {
+		return
+	}
+
+	logFmt := "%s %s [%s] %s ==> %s ctx: %s\n"
+	_, transFile, transLine, _ := runtime.Caller(fl.skip)
+	ctxInfo := ""
+	if ctx != nil {
+		keyMap := ctx.Value(logContextKey)
+		if keyMap != nil {
+			bys, _ := codec.API.JsonAPI.Marshal(keyMap)
+			ctxInfo = str.BytesToString(bys)
+		}
+	}
+	data := fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), levelFlages[level],
+		fmt.Sprintf("%s:%d", transFile, transLine), fmt.Sprintf(format, args...), ctxInfo)
+	if fl.asyncWriterFunc(level, &data) {
+		return
+	}
+	fl.writerHelper.writer(level, str.StringToBytes(&data))
+}
 func (fl *fileLog) println(level Level, args ...interface{}) {
 	if level < fl.level {
 		return
@@ -143,6 +208,29 @@ func (fl *fileLog) println(level Level, args ...interface{}) {
 	data := fmt.Sprintf("%s%s", fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), levelFlages[level],
 		fmt.Sprintf("%s:%d", transFile, transLine)),
 		fmt.Sprintln(args...))
+	if fl.asyncWriterFunc(level, &data) {
+		return
+	}
+	fl.writerHelper.writer(level, str.StringToBytes(&data))
+}
+
+func (fl *fileLog) printlnContext(ctx context.Context, level Level, args ...interface{}) {
+	if level < fl.level {
+		return
+	}
+	logFmt := "%s %s [%s] %s ==> "
+	_, transFile, transLine, _ := runtime.Caller(fl.skip)
+	ctxInfo := ""
+	if ctx != nil {
+		keyMap := ctx.Value(logContextKey)
+		if keyMap != nil {
+			bys, _ := codec.API.JsonAPI.Marshal(keyMap)
+			ctxInfo = str.BytesToString(bys)
+		}
+	}
+	data := fmt.Sprintf("%s%s%s", fmt.Sprintf(logFmt, fl.prefix, tm.GetNowDateTimeStr(), levelFlages[level],
+		fmt.Sprintf("%s:%d", transFile, transLine)),
+		fmt.Sprint(args...), fmt.Sprintln(" ctx: ", ctxInfo))
 	if fl.asyncWriterFunc(level, &data) {
 		return
 	}
@@ -206,6 +294,9 @@ func NewFileLog(conf *FileLogConfig) Logger {
 }
 
 func newFileLog(conf *FileLogConfig, async bool, asyncTime time.Duration) Logger {
+	if conf == nil {
+		conf = DefaultFileLogConfig()
+	}
 	conf.fixConfig()
 	table := make(map[string]Level)
 	for _, key := range conf.AloneWriter {
