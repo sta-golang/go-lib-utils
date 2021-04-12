@@ -28,7 +28,7 @@ const (
 	ERROR
 	FATAL
 
-	logContextKey = "staLoggerCtx"
+	LogContextKey = "staLoggerCtx"
 )
 
 func GetLevelName(level Level) string {
@@ -42,7 +42,7 @@ func LogContextKeyMap(ctx context.Context, keyMap map[string]string) context.Con
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	return context.WithValue(ctx, logContextKey, keyMap)
+	return context.WithValue(ctx, LogContextKey, keyMap)
 }
 
 // Logger log接口

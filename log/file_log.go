@@ -186,7 +186,7 @@ func (fl *fileLog) printContext(ctx context.Context, level Level, format string,
 	_, transFile, transLine, _ := runtime.Caller(fl.skip)
 	ctxInfo := ""
 	if ctx != nil {
-		keyMap := ctx.Value(logContextKey)
+		keyMap := ctx.Value(LogContextKey)
 		if keyMap != nil {
 			bys, _ := codec.API.JsonAPI.Marshal(keyMap)
 			ctxInfo = str.BytesToString(bys)
@@ -222,7 +222,7 @@ func (fl *fileLog) printlnContext(ctx context.Context, level Level, args ...inte
 	_, transFile, transLine, _ := runtime.Caller(fl.skip)
 	ctxInfo := ""
 	if ctx != nil {
-		keyMap := ctx.Value(logContextKey)
+		keyMap := ctx.Value(LogContextKey)
 		if keyMap != nil {
 			bys, _ := codec.API.JsonAPI.Marshal(keyMap)
 			ctxInfo = str.BytesToString(bys)

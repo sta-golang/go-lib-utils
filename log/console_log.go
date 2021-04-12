@@ -61,7 +61,7 @@ func (cl *consoleLog) printContext(ctx context.Context, level Level, format stri
 	_, transFile, transLine, _ := runtime.Caller(cl.skip)
 	ctxInfo := ""
 	if ctx != nil {
-		keyMap := ctx.Value(logContextKey)
+		keyMap := ctx.Value(LogContextKey)
 		if keyMap != nil {
 			bys, _ := codec.API.JsonAPI.Marshal(keyMap)
 			ctxInfo = str.BytesToString(bys)
@@ -119,7 +119,7 @@ func (cl *consoleLog) printlnContext(ctx context.Context, level Level, args ...i
 	_, transFile, transLine, _ := runtime.Caller(cl.skip)
 	ctxInfo := ""
 	if ctx != nil {
-		keyMap := ctx.Value(logContextKey)
+		keyMap := ctx.Value(LogContextKey)
 		if keyMap != nil {
 			bys, _ := codec.API.JsonAPI.Marshal(keyMap)
 			ctxInfo = str.BytesToString(bys)
