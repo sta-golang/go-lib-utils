@@ -55,6 +55,20 @@ type task struct {
 	retErr error
 }
 
+type AsyncGroupOption func(*asyncGroup)
+
+func WithWorkPool(size int) func(*asyncGroup) {
+	return func(ag *asyncGroup) {
+		ag.executor = workerpool.New(size)
+	}
+}
+
+func WithWorkPoolAndQueueSize(wSize, qSize int) func(*asyncGroup) {
+	return func(ag *asyncGroup) {
+		ag.executor = workerpool.NewWithQueueSize(wSize, qSize)
+	}
+}
+
 func newTask() *task {
 	return &task{
 		Status: TaskStatusInit,
@@ -70,21 +84,19 @@ func (t *task) Ret() (interface{}, error) {
 	return t.retVal, t.retErr
 }
 
-func NewAsyncGroup(poolSize ...int) *asyncGroup {
-	if pool == nil {
-		initPool()
+func NewAsyncGroup(opts ...AsyncGroupOption) *asyncGroup {
+	ag := defaultAsyncGroup()
+	for _, fn := range opts {
+		fn(ag)
 	}
-	var workP workerpool.Executor
-	if len(poolSize) > 0 && len(poolSize) == 2 {
-		workP = workerpool.NewWithQueueSize(poolSize[0], poolSize[1])
-	} else if len(poolSize) > 0 && poolSize[0] > 0 {
-		workP = workerpool.New(poolSize[0])
-	}
+	return ag
+}
+
+func defaultAsyncGroup() *asyncGroup {
 	return &asyncGroup{
-		wg:       sync.WaitGroup{},
-		tasks:    sync.Map{},
-		Status:   AsyncGroupStatusInit,
-		executor: workP,
+		wg:     sync.WaitGroup{},
+		tasks:  sync.Map{},
+		Status: AsyncGroupStatusInit,
 	}
 }
 
@@ -162,6 +174,13 @@ func (ag *asyncGroup) GetTask(name string) *task {
 	}
 	ret, _ := ag.tasks.Load(name)
 	return ret.(*task)
+}
+
+func (ag *asyncGroup) DestoryTask(tk *task) {
+	if pool == nil {
+		return
+	}
+	pool.Put(tk)
 }
 
 func (ag *asyncGroup) doClose() {

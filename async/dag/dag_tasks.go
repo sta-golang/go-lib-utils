@@ -55,10 +55,12 @@ type task struct {
 	retErr          error
 	state           TaskState
 	finishCnt       int32
-	parents         map[*task]bool
+	parents         map[*task]struct{}
 	childrenTasks   map[string]*task
 	childrenKeyList []string
 }
+
+var emptyStruct struct{}
 
 type TaskHelper struct {
 	task *task
@@ -71,7 +73,7 @@ func NewTask(name string, fn func(ctx context.Context, helper TaskHelper) (inter
 		retVal:        nil,
 		retErr:        nil,
 		state:         TaskInit,
-		parents:       make(map[*task]bool),
+		parents:       make(map[*task]struct{}),
 		childrenTasks: make(map[string]*task),
 	}
 }
@@ -92,7 +94,7 @@ func (tk *task) AddSubTask(subT *task) {
 		return
 	}
 	tk.childrenTasks[subT.name] = subT
-	subT.parents[tk] = true
+	subT.parents[tk] = emptyStruct
 	tk.childrenKeyList = append(tk.childrenKeyList, subT.name)
 }
 
@@ -352,6 +354,13 @@ func (dt *DagTasks) IsFinish() bool {
 // casSetStatus cas设置状态
 func (tk *task) casSetStatus(old, new TaskState) bool {
 	return atomic.CompareAndSwapInt32((*int32)(&tk.state), int32(old), int32(new))
+}
+
+func (tk *task) Clear() {
+	tk.Init()
+	tk.parents = make(map[*task]struct{})
+	tk.childrenTasks = make(map[string]*task)
+	tk.childrenKeyList = tk.childrenKeyList[:]
 }
 
 // Init init状态设置

@@ -7,7 +7,7 @@ import (
 )
 
 func TestAsyncGroup_Add(t *testing.T) {
-	group := NewAsyncGroup(1)
+	group := NewAsyncGroup(WithWorkPool(1))
 	defer group.Close()
 	err := group.Add("hello", func() (interface{}, error) {
 		time.Sleep(time.Second)
