@@ -1,5 +1,6 @@
 # go-lib-utils
 ![](https://img.shields.io/badge/author-TheSevenSky-blue) ![](https://img.shields.io/badge/build-passing-yellow) ![](https://img.shields.io/badge/Release-Development-red)
+![](https://camo.githubusercontent.com/8ab5e05ff609c4a280640cef9c5beeb9bc1953881e9daba2d6235b5989381557/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f6a657373656475666669656c642f6c617a796769743f7374617475732e737667)
 
 这是封装的go语言utils工具类，目的是为了自己使用和协会成员使用，
 <br/>当然任何人都可以使用只是项目的初衷如上
@@ -22,6 +23,7 @@
 - [**字符串**](https://github.com/sta-golang/go-lib-utils/tree/master/str) <br/>
 - [**结构体工具**](https://github.com/sta-golang/go-lib-utils/tree/master/structs) <br/>
 - [**时间封装**](https://github.com/sta-golang/go-lib-utils/tree/master/time) <br/>
+- [**邮件工具**](https://github.com/sta-golang/go-lib-utils/tree/master/email) <br/>
 
 ```go
 go get -u https://github.com/sta-golang/go-lib-utils
