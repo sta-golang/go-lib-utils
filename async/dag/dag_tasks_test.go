@@ -3,9 +3,68 @@ package dag
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"sort"
+	"sync"
 	"testing"
+	"time"
 )
+
+func TestDagRoot(t *testing.T) {
+	root := NewTask("root", func(ctx context.Context, helper TaskHelper) (interface{}, error) {
+		fmt.Println("root")
+		return nil, nil
+	})
+	dg := NewDag(root)
+	dg.Do(context.Background(), false)
+}
+
+func TestDagPool(t *testing.T) {
+	Config().SetPool()
+	locker := sync.Mutex{}
+	cntMap := make(map[interface{}]int)
+	wg := sync.WaitGroup{}
+	for i := 0; i < 16; i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			for j := 0; j < 1000; j++ {
+				kNum := rand.Intn(100)
+				rt := NewTask(fmt.Sprintf("test-%d-%d", index, j), func(ctx context.Context, helper TaskHelper) (interface{}, error) {
+					time.Sleep(time.Microsecond * time.Duration(rand.Intn(51)))
+					return nil, nil
+				})
+				cnt := 1
+				locker.Lock()
+				if val, ok := cntMap[rt]; ok {
+					cnt = val + 1
+				}
+				cntMap[rt] = cnt
+				locker.Unlock()
+				for k := 0; k < kNum; k++ {
+					subTk := NewTask(fmt.Sprintf("sub-%d-%d", index, k), func(ctx context.Context, helper TaskHelper) (interface{}, error) {
+						time.Sleep(time.Microsecond * 5)
+						return nil, nil
+					})
+
+					locker.Lock()
+					cnt := 2
+					if val, ok := cntMap[subTk]; ok {
+						cnt = val + 2
+					}
+					cntMap[rt] = cnt
+					locker.Unlock()
+				}
+				da := NewDag(rt)
+				da.Do(context.Background(), false)
+				da.Destory()
+			}
+		}(i)
+		time.Sleep(time.Microsecond * time.Duration(rand.Intn(100)*10))
+	}
+	wg.Wait()
+	fmt.Println(cntMap)
+}
 
 func TestDagTasks_AddRootTasks(t *testing.T) {
 	root := NewTask("root", func(ctx context.Context, helper TaskHelper) (interface{}, error) {

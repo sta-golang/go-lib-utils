@@ -31,6 +31,8 @@ const (
 	DagFinish  DagState = 3
 
 	maxRetry = 3
+
+	maxReMakeSize = 8
 )
 
 var (
@@ -48,82 +50,19 @@ type DagTasks struct {
 	root       *task
 }
 
-type task struct {
-	name            string
-	fn              func(ctx context.Context, helper TaskHelper) (interface{}, error)
-	retVal          interface{}
-	retErr          error
-	state           TaskState
-	finishCnt       int32
-	parents         map[*task]struct{}
-	childrenTasks   map[string]*task
-	childrenKeyList []string
-}
-
-var emptyStruct struct{}
-
-type TaskHelper struct {
-	task *task
-}
-
-func NewTask(name string, fn func(ctx context.Context, helper TaskHelper) (interface{}, error)) *task {
-	return &task{
-		name:          name,
-		fn:            fn,
-		retVal:        nil,
-		retErr:        nil,
-		state:         TaskInit,
-		parents:       make(map[*task]struct{}),
-		childrenTasks: make(map[string]*task),
+func NewDag(root *task) *DagTasks {
+	if global.dagPool != nil {
+		ret := global.dagPool.Get().(*DagTasks)
+		ret.wg = sync.WaitGroup{}
+		ret.root = root
+		ret.state = DagInit
+		return ret
 	}
-}
-
-func NewDag(root *task) DagTasks {
-	return DagTasks{
+	return &DagTasks{
 		wg:    sync.WaitGroup{},
 		root:  root,
 		state: DagInit,
 	}
-}
-
-func (tk *task) AddSubTask(subT *task) {
-	if tk.Equals(subT) {
-		return
-	}
-	if _, ok := subT.parents[tk]; ok {
-		return
-	}
-	tk.childrenTasks[subT.name] = subT
-	subT.parents[tk] = emptyStruct
-	tk.childrenKeyList = append(tk.childrenKeyList, subT.name)
-}
-
-func (tk *task) Equals(other *task) bool {
-	if tk.name == other.name {
-		return true
-	}
-	if tk == other {
-		return true
-	}
-	return false
-}
-
-func (tk *task) checkDependenceForDfs() bool {
-	m := make(map[*task]bool)
-	return doCheckDependenceForDfs(&m, tk)
-}
-
-func doCheckDependenceForDfs(set *map[*task]bool, tk *task) bool {
-	if _, ok := (*set)[tk]; ok {
-		return true
-	}
-	(*set)[tk] = true
-	for _, temp := range tk.childrenTasks {
-		if doCheckDependenceForDfs(set, temp) {
-			return true
-		}
-	}
-	return false
 }
 
 func (dt *DagTasks) checkDependenceForDfs() bool {
@@ -183,6 +122,11 @@ func (dt *DagTasks) ChangeRootTask(root *task) error {
 }
 
 func (dt *DagTasks) startRun(runCh chan *task) {
+	if dt.root != nil && len(dt.root.childrenTasks) <= 0 {
+		dt.root.Ready()
+		runCh <- dt.root
+		return
+	}
 	dt.doStartRun(dt.root, runCh)
 }
 
@@ -269,34 +213,30 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 	}
 }
 
-func (tk *task) GetSubTaskRet(key string) (interface{}, error) {
-	return tk.childrenTasks[key].GetRet()
-}
-
-func (th *TaskHelper) GetSubTaskRet(key string) (interface{}, error) {
-	return th.task.GetSubTaskRet(key)
-}
-
-func (th *TaskHelper) GetSubTaskSize() int {
-	return len(th.task.childrenKeyList)
-}
-
-func (th *TaskHelper) GetSubTaskNames() []string {
-	return th.task.childrenKeyList
-}
-
-func (th *TaskHelper) GetSubTaskRetForIndex(index int) (interface{}, error) {
-	if index < 0 || index >= len(th.task.childrenKeyList) {
-		return nil, nil
+func (dt *DagTasks) DestoryAsync() {
+	err := workerpool.Submit(dt.Destory)
+	if err != nil {
+		go dt.Destory()
 	}
-	return th.task.GetSubTaskRet(th.task.childrenKeyList[index])
 }
 
-func (tk *task) GetRet() (interface{}, error) {
-	if !tk.IsFinish() {
-		return nil, nil
+func (dt *DagTasks) Destory() {
+	if global.taskPool != nil {
+		dt.doDestory(dt.root)
 	}
-	return tk.retVal, tk.retErr
+	if global.dagPool != nil {
+		global.dagPool.Put(dt)
+	}
+}
+
+func (dt *DagTasks) doDestory(tk *task) {
+	for _, tk := range tk.childrenTasks {
+		if tk == nil {
+			continue
+		}
+		dt.doDestory(tk)
+	}
+	global.taskPool.Put(tk)
 }
 
 // Init init状态设置
@@ -349,68 +289,4 @@ func (dt *DagTasks) IsRunning() bool {
 // IsFinish 是否为运行完成状态
 func (dt *DagTasks) IsFinish() bool {
 	return dt.state == DagFinish
-}
-
-// casSetStatus cas设置状态
-func (tk *task) casSetStatus(old, new TaskState) bool {
-	return atomic.CompareAndSwapInt32((*int32)(&tk.state), int32(old), int32(new))
-}
-
-func (tk *task) Clear() {
-	tk.Init()
-	tk.parents = make(map[*task]struct{})
-	tk.childrenTasks = make(map[string]*task)
-	tk.childrenKeyList = tk.childrenKeyList[:]
-}
-
-// Init init状态设置
-func (tk *task) Init() {
-	if tk.state == TaskInit {
-		return
-	}
-	tk.state = TaskInit
-}
-
-// Ready Ready状态设置
-func (tk *task) Ready() {
-	if tk.state == TaskReady {
-		return
-	}
-	tk.state = TaskReady
-}
-
-// Running running状态设置
-func (tk *task) Running() {
-	if tk.state == TaskRunning {
-		return
-	}
-	tk.state = TaskRunning
-}
-
-// Finish finish状态设置
-func (tk *task) Finish() {
-	if tk.state == TaskFinish {
-		return
-	}
-	tk.state = TaskFinish
-}
-
-// IsInit 是否为初始化状态
-func (tk *task) IsInit() bool {
-	return tk.state == TaskInit
-}
-
-// IsReady 是否为就绪态
-func (tk *task) IsReady() bool {
-	return tk.state == TaskReady
-}
-
-// IsRunning 是否为运行中状态
-func (tk *task) IsRunning() bool {
-	return tk.state == TaskRunning
-}
-
-// IsFinish 是否为运行完成状态
-func (tk *task) IsFinish() bool {
-	return tk.state == TaskFinish
 }
