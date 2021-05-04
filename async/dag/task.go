@@ -2,7 +2,6 @@ package dag
 
 import (
 	"context"
-	"fmt"
 
 	"sync/atomic"
 )
