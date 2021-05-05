@@ -160,7 +160,7 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 			tk := tempTk
 			defer func() {
 				if e := recover(); e != nil {
-					log.Errorf("panic:%v", string(debug.Stack()))
+					log.Errorf("panic err : %v stack :%v", e, string(debug.Stack()))
 				}
 			}()
 			tk.Running()
@@ -188,6 +188,7 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 		if dt.workerPool == nil {
 			go fn()
 		} else {
+			fmt.Println("pool")
 			var poolErr error
 			for i := 0; i < maxRetry; i++ {
 				if dt.workerPool == nil {
