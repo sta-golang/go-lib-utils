@@ -167,7 +167,7 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 						continue
 					}
 					atomic.AddInt32(&parent.finishCnt, 1)
-					fmt.Println(fmt.Println(parent.childrenTasks))
+					fmt.Println("child len ", len(parent.childrenTasks))
 					fmt.Println(parent.finishCnt)
 					if int(atomic.LoadInt32(&parent.finishCnt)) == len(parent.childrenTasks) && parent.casSetStatus(TaskInit, TaskReady) {
 						runChan <- parent
