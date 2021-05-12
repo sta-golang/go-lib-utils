@@ -120,9 +120,13 @@ func doCheckDependenceForDfs(set *map[*task]bool, tk *task) bool {
 
 func (tk *task) Clear() {
 	tk.Init()
+	tk.retErr = nil
+	tk.retVal = nil
+	tk.finishCnt = 0
 	tk.parents = make(map[*task]struct{})
 	tk.childrenTasks = make(map[string]*task)
 	tk.childrenKeyList = nil
+
 }
 
 // Init init状态设置
