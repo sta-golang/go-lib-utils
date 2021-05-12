@@ -231,11 +231,11 @@ func (dt *DagTasks) Destory() {
 }
 
 func (dt *DagTasks) doDestory(tk *task) {
-	for _, tk := range tk.childrenTasks {
-		if tk == nil {
+	for _, tkc := range tk.childrenTasks {
+		if tkc == nil {
 			continue
 		}
-		dt.doDestory(tk)
+		dt.doDestory(tkc)
 	}
 	global.taskPool.Put(tk)
 }
