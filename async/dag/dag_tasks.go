@@ -162,6 +162,15 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 				if e := recover(); e != nil {
 					log.Errorf("panic err : %v stack :%v", e, string(debug.Stack()))
 				}
+				for parent := range tk.parents {
+					if !parent.IsInit() {
+						continue
+					}
+					atomic.AddInt32(&parent.finishCnt, 1)
+					if int(atomic.LoadInt32(&parent.finishCnt)) == len(parent.childrenTasks) && parent.casSetStatus(TaskInit, TaskReady) {
+						runChan <- parent
+					}
+				}
 			}()
 			tk.Running()
 			if tk.retErr == nil {
@@ -174,15 +183,6 @@ func (dt *DagTasks) doExec(ctx context.Context, runChan chan *task) {
 			if len(tk.parents) == 0 {
 				runChan <- endTask
 				return
-			}
-			for parent := range tk.parents {
-				if !parent.IsInit() {
-					continue
-				}
-				atomic.AddInt32(&parent.finishCnt, 1)
-				if int(atomic.LoadInt32(&parent.finishCnt)) == len(parent.childrenTasks) && parent.casSetStatus(TaskInit, TaskReady) {
-					runChan <- parent
-				}
 			}
 		}
 		if dt.workerPool == nil {

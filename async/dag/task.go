@@ -122,7 +122,7 @@ func (tk *task) Clear() {
 	tk.Init()
 	tk.parents = make(map[*task]struct{})
 	tk.childrenTasks = make(map[string]*task)
-	tk.childrenKeyList = tk.childrenKeyList[:]
+	tk.childrenKeyList = nil
 }
 
 // Init init状态设置
