@@ -13,7 +13,7 @@ func WithWorkPoolWithSize(size int) func(*Group) {
 }
 
 // WithWorkPool 使用指定线程池
-func WithWorkPool(wp *workerpool.WorkerPool) func(*Group) {
+func WithWorkPool(wp workerpool.Executor) func(*Group) {
 	return func(ag *Group) {
 		ag.executor = wp
 	}
